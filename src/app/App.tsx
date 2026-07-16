@@ -1,3 +1,4 @@
+// src/app/App.tsx (modificado: nueva ruta /guide, lazy-loaded)
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthContext';
@@ -10,6 +11,7 @@ import { ThemeProvider } from '../shared/theme/ThemeProvider';
 
 const QuizPage = lazy(() => import('../quiz/QuizPage').then((m) => ({ default: m.QuizPage })));
 const StudyPage = lazy(() => import('../study/StudyPage').then((m) => ({ default: m.StudyPage })));
+const GuidePage = lazy(() => import('../guide/GuidePage').then((m) => ({ default: m.GuidePage })));
 
 export default function App() {
   return (
@@ -38,6 +40,18 @@ export default function App() {
                   <AppLayout>
                     <Suspense fallback={<InlineSpinner label="Loading study section..." />}>
                       <StudyPage />
+                    </Suspense>
+                  </AppLayout>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/guide"
+              element={
+                <AuthGuard>
+                  <AppLayout>
+                    <Suspense fallback={<InlineSpinner label="Loading study guide..." />}>
+                      <GuidePage />
                     </Suspense>
                   </AppLayout>
                 </AuthGuard>

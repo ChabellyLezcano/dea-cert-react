@@ -1,11 +1,12 @@
 /**
- * Seeds the `questions` and `glossary_terms` tables in Supabase from the
- * static source data in src/quiz/data and src/study/data.
+ * Seeds the `questions`, `glossary_terms`, and `study_topics` tables in
+ * Supabase from the static source data in src/quiz/data, src/study/data,
+ * and src/guide/data.
  *
  * This is the ONLY place that writes to those tables — the running app only
- * ever reads them (see useQuestionBank / useGlossaryTerms). Run this once
- * after applying the migrations, and again whenever you edit the source
- * question/glossary files.
+ * ever reads them (see useQuestionBank / useGlossaryTerms / useStudyTopics).
+ * Run this once after applying the migrations, and again whenever you edit
+ * the source question/glossary/study guide files.
  *
  * Usage:
  *   npm run db:seed
@@ -18,6 +19,8 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../src/types/database.types';
 import { QUESTION_BANK } from '../src/quiz/data/bank';
 import { glossary } from '../src/study/data/glossary';
+import { STUDY_TOPICS } from '../src/guide/data/bank';
+import process from 'process';
 
 const CHUNK_SIZE = 200;
 
@@ -78,7 +81,23 @@ async function main() {
     console.log(`  ...${batch.length} rows upserted`);
   }
 
-  console.log('Done. Questions and glossary are now served from Supabase.');
+  console.log(`Seeding ${STUDY_TOPICS.length} study guide topics...`);
+  const studyTopicRows = STUDY_TOPICS.map((topic) => ({
+    id: topic.id,
+    domain: topic.domain,
+    topic_order: topic.order,
+    title: topic.title,
+    summary: topic.summary,
+    content_md: topic.contentMd,
+  }));
+
+  for (const batch of chunk(studyTopicRows, CHUNK_SIZE)) {
+    const { error } = await supabase.from('study_topics').upsert(batch, { onConflict: 'id' });
+    if (error) throw new Error(`Failed to seed study guide topics: ${error.message}`);
+    console.log(`  ...${batch.length} rows upserted`);
+  }
+
+  console.log('Done. Questions, glossary and study guide are now served from Supabase.');
 }
 
 main().catch((error) => {

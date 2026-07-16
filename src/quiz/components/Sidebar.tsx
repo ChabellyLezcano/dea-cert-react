@@ -79,6 +79,9 @@ function DomainButton({
 }) {
   const progressPct = stats.total ? Math.round((stats.answered / stats.total) * 100) : 0;
   const correctPct = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
+  // Accuracy = correct out of ANSWERED (not out of total) — "how well am I
+  // doing on what I've attempted so far", independent of how much is left.
+  const accuracyPct = stats.answered > 0 ? Math.round((stats.correct / stats.answered) * 100) : null;
 
   return (
     <button
@@ -103,9 +106,24 @@ function DomainButton({
         <div className="absolute inset-y-0 left-0 bg-brand-200" style={{ width: `${progressPct}%` }} />
         <div className="absolute inset-y-0 left-0 bg-ok-500" style={{ width: `${correctPct}%` }} />
       </div>
-      <p className="mt-1.5 text-xs text-ink-400">
-        {stats.correct}/{stats.total} correct · {stats.answered} answered
-      </p>
+      <div className="mt-1.5 flex items-center justify-between gap-2">
+        <p className="text-xs text-ink-400">
+          {stats.correct}/{stats.total} correct · {stats.answered} answered
+        </p>
+        <AccuracyBadge accuracyPct={accuracyPct} />
+      </div>
     </button>
   );
+}
+
+/** Correct-out-of-answered percentage, color-coded so a glance tells you
+ * whether a section needs more review (red/amber) or is solid (green). */
+function AccuracyBadge({ accuracyPct }: { accuracyPct: number | null }) {
+  if (accuracyPct === null) {
+    return <span className="shrink-0 text-xs font-medium text-ink-300">No attempts yet</span>;
+  }
+
+  const tone = accuracyPct >= 80 ? 'text-ok-600' : accuracyPct >= 50 ? 'text-accent-600' : 'text-ko-600';
+
+  return <span className={`shrink-0 text-xs font-bold ${tone}`}>{accuracyPct}% accuracy</span>;
 }

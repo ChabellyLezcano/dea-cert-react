@@ -1,5 +1,3 @@
-/** Hand-written types mirroring supabase/migrations/*.sql.
- * Regenerate with `supabase gen types typescript` if the schema changes. */
 export interface Database {
   public: {
     Tables: {
@@ -103,6 +101,39 @@ export interface Database {
           definition?: string;
           code_snippet?: string | null;
           retired?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      study_topics: {
+        Row: {
+          id: string;
+          domain: string;
+          topic_order: number;
+          title: string;
+          summary: string;
+          content_md: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          domain: string;
+          topic_order: number;
+          title: string;
+          summary: string;
+          content_md: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          domain?: string;
+          topic_order?: number;
+          title?: string;
+          summary?: string;
+          content_md?: string;
           created_at?: string;
           updated_at?: string;
         };
