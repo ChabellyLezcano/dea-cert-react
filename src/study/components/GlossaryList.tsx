@@ -25,7 +25,7 @@ export function GlossaryList({ terms, searchTerm }: GlossaryListProps) {
     <div className="flex flex-col gap-8">
       {grouped.map(({ domain, items }) => (
         <section key={domain.id}>
-          <h3 className="mb-3 flex flex-wrap items-center gap-2 text-base font-bold text-ink-800">
+          <h3 className="mb-3 flex flex-wrap items-center gap-2 break-words text-base font-bold text-ink-800">
             <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
               S{domain.order}
             </span>
@@ -37,7 +37,7 @@ export function GlossaryList({ terms, searchTerm }: GlossaryListProps) {
           <div className="grid gap-3 sm:grid-cols-2 animate-stagger">
             {items.map((term) => (
               <article key={term.t} className="rounded-xl border border-ink-100 bg-surface p-4 shadow-sm">
-                <h4 className="flex flex-wrap items-center gap-2 font-semibold text-brand-700">
+                <h4 className="flex flex-wrap items-center gap-2 break-words font-semibold text-brand-700">
                   <Highlight text={term.t} term={searchTerm} />
                   {term.r === 1 && (
                     <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-500">
@@ -45,11 +45,11 @@ export function GlossaryList({ terms, searchTerm }: GlossaryListProps) {
                     </span>
                   )}
                 </h4>
-                <p className="mt-1 text-sm text-ink-600">
+                <p className="mt-1 break-words text-sm text-ink-600">
                   <Highlight text={term.d} term={searchTerm} />
                 </p>
                 {term.k && (
-                  <pre className="mt-2 overflow-x-auto rounded-lg bg-ink-900 p-3 text-xs text-ink-50">
+                  <pre className="mt-2 max-w-full overflow-x-auto rounded-lg bg-ink-900 p-3 text-xs text-ink-50">
                     <code>
                       <Highlight text={term.k} term={searchTerm} />
                     </code>

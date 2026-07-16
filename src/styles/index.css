@@ -90,11 +90,14 @@
   html {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
 
   body {
     background-color: var(--color-canvas);
     color: var(--color-ink-800);
+    overflow-wrap: break-word;
+    overflow-x: hidden;
     transition:
       background-color 0.2s ease,
       color 0.2s ease;

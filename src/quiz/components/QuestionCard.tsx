@@ -53,7 +53,7 @@ export function QuestionCard({ question, entry, searchTerm, onGrade, onReveal, o
       className={`rounded-2xl border bg-surface p-5 shadow-sm transition ${cardTone || 'border-ink-100'}`}
     >
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+        <span className="max-w-full break-words rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
           S{domain.order} · {domain.name}
         </span>
         <span className="rounded-full bg-ink-50 px-2.5 py-1 text-xs font-medium text-ink-500">
@@ -66,7 +66,7 @@ export function QuestionCard({ question, entry, searchTerm, onGrade, onReveal, o
         )}
       </div>
 
-      <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink-800">
+      <p className="whitespace-pre-line break-words text-[15px] leading-relaxed text-ink-800">
         <Highlight text={question.q} term={searchTerm} />
       </p>
 
@@ -116,7 +116,9 @@ export function QuestionCard({ question, entry, searchTerm, onGrade, onReveal, o
           <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink-400">
             Explanation
           </span>
-          <Highlight text={question.x} term={searchTerm} />
+          <p className="break-words">
+            <Highlight text={question.x} term={searchTerm} />
+          </p>
         </div>
       )}
     </article>
@@ -182,7 +184,7 @@ function OptionButton({
       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-current text-[11px] font-bold">
         {letter}
       </span>
-      <span className="text-ink-700">
+      <span className="min-w-0 break-words text-ink-700">
         <Highlight text={text} term={searchTerm} />
       </span>
     </button>

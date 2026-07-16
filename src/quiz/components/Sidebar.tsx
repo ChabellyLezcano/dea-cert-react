@@ -92,7 +92,11 @@ function DomainButton({
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className={`text-sm font-semibold ${active ? 'text-brand-700' : 'text-ink-700'}`}>{label}</span>
+        <span
+          className={`min-w-0 break-words text-sm font-semibold ${active ? 'text-brand-700' : 'text-ink-700'}`}
+        >
+          {label}
+        </span>
         {weight !== null && <span className="shrink-0 text-xs font-medium text-ink-400">{weight}%</span>}
       </div>
       <div className="relative mt-2 h-1.5 w-full overflow-hidden rounded-full bg-ink-100">
