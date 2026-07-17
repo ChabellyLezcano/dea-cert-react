@@ -3,6 +3,29 @@ import { supabase } from '../../shared/lib/supabaseClient';
 import { sameMembers } from '../../shared/utils/arrays';
 import type { ProgressMap, Question, QuestionProgress } from '../quiz.types';
 
+/** Pure builders for a graded/revealed progress entry — exported so other
+ * code (e.g. the mock exam's local draft state) can compute the exact same
+ * "is this correct" logic without duplicating it or going through Supabase. */
+export function buildGradedEntry(question: Question, picked: number[]): QuestionProgress {
+  return {
+    questionId: question.id,
+    ok: sameMembers(picked, question.a),
+    picked,
+    revealed: false,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function buildRevealedEntry(question: Question): QuestionProgress {
+  return {
+    questionId: question.id,
+    ok: false,
+    picked: [],
+    revealed: true,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 export interface UseProgressResult {
   progress: ProgressMap;
   isLoading: boolean;
@@ -93,13 +116,7 @@ export function useProgress(userId: string | null): UseProgressResult {
 
   const gradeQuestion = useCallback(
     (question: Question, picked: number[]) => {
-      const entry: QuestionProgress = {
-        questionId: question.id,
-        ok: sameMembers(picked, question.a),
-        picked,
-        revealed: false,
-        updatedAt: new Date().toISOString(),
-      };
+      const entry = buildGradedEntry(question, picked);
       setProgress((prev) => ({ ...prev, [question.id]: entry }));
       persist(entry);
     },
@@ -108,13 +125,7 @@ export function useProgress(userId: string | null): UseProgressResult {
 
   const revealQuestion = useCallback(
     (question: Question) => {
-      const entry: QuestionProgress = {
-        questionId: question.id,
-        ok: false,
-        picked: [],
-        revealed: true,
-        updatedAt: new Date().toISOString(),
-      };
+      const entry = buildRevealedEntry(question);
       setProgress((prev) => ({ ...prev, [question.id]: entry }));
       persist(entry);
     },

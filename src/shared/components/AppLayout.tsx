@@ -12,9 +12,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-10 border-b border-ink-100 bg-surface/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="text-xl font-extrabold tracking-tight text-ink-900">
-              DEA<span className="text-brand-600">·26</span>
-            </span>
+            <span className="text-xl font-extrabold tracking-tight text-ink-900">DEA</span>
             <span className="hidden text-xs text-ink-400 sm:inline">
               Databricks Certified Data Engineer Associate
             </span>
@@ -39,11 +37,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
-
-      <footer className="border-t border-ink-100 py-6 text-center text-xs text-ink-400">
-        DEA·26 · personal study tool · questions and answers in English, explanations in Spanish · not
-        affiliated with Databricks
-      </footer>
     </div>
   );
 }

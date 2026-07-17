@@ -10,3 +10,9 @@ export function shuffleIndices(length: number): number[] {
   }
   return indices;
 }
+
+/** Returns a new array with the same elements as `items`, in random order.
+ * Built on top of shuffleIndices so both share the same shuffle algorithm. */
+export function shuffleArray<T>(items: readonly T[]): T[] {
+  return shuffleIndices(items.length).map((i) => items[i]);
+}
