@@ -88,10 +88,10 @@ function DomainButton({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`w-full rounded-xl border px-3 py-2.5 text-left transition ${
+      className={`w-full rounded-xl border px-3 py-2.5 text-left transition [-webkit-tap-highlight-color:transparent] ${
         active
           ? 'border-brand-500 bg-brand-50 shadow-sm'
-          : 'border-transparent hover:border-ink-100 hover:bg-ink-50'
+          : 'border-transparent active:border-ink-100 active:bg-ink-50 hover:border-ink-100 hover:bg-ink-50'
       }`}
     >
       <div className="flex items-center justify-between gap-2">
