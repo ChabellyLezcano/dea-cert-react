@@ -1,5 +1,7 @@
 import type { Question, RawQuestion } from '../quiz.types';
 import { exam1 } from './exams/exam1';
+import { exam10 } from './exams/exam10';
+import { exam11 } from './exams/exam11';
 import { exam2 } from './exams/exam2';
 import { exam3 } from './exams/exam3';
 import { exam4 } from './exams/exam4';
@@ -19,6 +21,8 @@ const EXAMS: readonly (readonly [number, RawQuestion[]])[] = [
   [7, exam7],
   [8, exam8],
   [9, exam9],
+  [10, exam10],
+  [11, exam11],
 ];
 
 /**
