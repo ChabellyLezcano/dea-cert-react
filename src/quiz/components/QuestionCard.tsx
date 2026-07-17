@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DOMAIN_MAP } from '../data/domains';
 import { Highlight } from '../../shared/components/Highlight';
 import { Button } from '../../shared/components/Button';
+import { shuffleIndices } from '../../shared/utils/shuffle';
 import type { Question, QuestionProgress } from '../quiz.types';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E'];
@@ -20,6 +21,15 @@ export function QuestionCard({ question, entry, searchTerm, onGrade, onReveal, o
   const domain = DOMAIN_MAP[question.d];
   const isMulti = question.m === 1;
   const isAnswered = Boolean(entry);
+
+  // Randomizes only the DISPLAY order of options. Every value derived from
+  // this — toggleOption, optionState, entry.picked, question.a — still
+  // refers to the option's ORIGINAL index, so grading logic is completely
+  // unaffected; only the visual position (and A/B/C/D label) changes.
+  // Memoized by question.id so the order stays put across re-renders
+  // (e.g. right after grading) instead of reshuffling on every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- question.id isn't read inside shuffleIndices, but it's the real trigger for reshuffling: without it, two consecutive questions with the same option count would incorrectly keep the same shuffle order.
+  const displayOrder = useMemo(() => shuffleIndices(question.o.length), [question.id, question.o.length]);
 
   function toggleOption(index: number) {
     if (isAnswered) return;
@@ -71,15 +81,15 @@ export function QuestionCard({ question, entry, searchTerm, onGrade, onReveal, o
       </p>
 
       <div className="mt-4 flex flex-col gap-2">
-        {question.o.map((option, index) => (
+        {displayOrder.map((originalIndex, position) => (
           <OptionButton
-            key={index}
-            letter={OPTION_LETTERS[index]}
-            text={option}
+            key={originalIndex}
+            letter={OPTION_LETTERS[position]}
+            text={question.o[originalIndex]}
             searchTerm={searchTerm}
-            state={optionState(question, entry, selected, index)}
+            state={optionState(question, entry, selected, originalIndex)}
             disabled={isAnswered}
-            onClick={() => toggleOption(index)}
+            onClick={() => toggleOption(originalIndex)}
           />
         ))}
       </div>
