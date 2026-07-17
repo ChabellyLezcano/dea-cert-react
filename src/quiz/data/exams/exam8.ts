@@ -525,7 +525,7 @@ export const exam8: RawQuestion[] = [
   {
     n: 41,
     d: 'GOV',
-    m: 0,
+    m: 1,
     q: 'A junior data engineer troubleshoots an "Access Denied" error for analyst_user querying prod_catalog.marketing_schema.campaign_results, despite confirmed SELECT privilege on the table.\n\nWhich two SQL commands must be executed to fully resolve this access issue? (Select two)',
     o: [
       'GRANT USE SCHEMA ON SCHEMA prod_catalog.marketing_schema TO analyst_user;',
