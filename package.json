@@ -1,9 +1,9 @@
 {
-  "name": "databricks-dea-prep",
+  "name": "cert-prep-platform",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Personal review platform for the Databricks Certified Data Engineer Associate exam, with Supabase auth and per-user progress tracking.",
+  "description": "Personal multi-certification study platform (practice questions, glossary, study guides) with Supabase auth and per-user, per-certification progress tracking. Currently loaded: Databricks Certified Data Engineer Associate, AWS Certified Solutions Architect Associate.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
