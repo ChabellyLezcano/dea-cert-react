@@ -33,6 +33,7 @@ export function useQuestionBank(): UseQuestionBankResult {
         }
         const mapped: Question[] = (data ?? []).map((row) => ({
           id: row.id,
+          certId: row.cert_id,
           exam: row.exam,
           n: row.n,
           d: row.domain as DomainId,

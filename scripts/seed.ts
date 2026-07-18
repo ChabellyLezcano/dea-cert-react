@@ -20,6 +20,7 @@ import type { Database } from '../src/types/database.types';
 import { QUESTION_BANK } from '../src/quiz/data/bank';
 import { glossary } from '../src/study/data/glossary';
 import { STUDY_TOPICS } from '../src/guide/data/bank';
+import { DATABRICKS_DEA_CERT_ID } from '../src/certifications/registry';
 import process from 'process';
 
 const CHUNK_SIZE = 200;
@@ -50,6 +51,7 @@ async function main() {
   console.log(`Seeding ${QUESTION_BANK.length} questions...`);
   const questionRows = QUESTION_BANK.map((q) => ({
     id: q.id,
+    cert_id: q.certId,
     exam: q.exam,
     n: q.n,
     domain: q.d,
@@ -69,6 +71,7 @@ async function main() {
   console.log(`Seeding ${glossary.length} glossary terms...`);
   const glossaryRows = glossary.map((term) => ({
     term: term.t,
+    cert_id: DATABRICKS_DEA_CERT_ID,
     domain: term.c,
     definition: term.d,
     code_snippet: term.k ?? null,
@@ -84,6 +87,7 @@ async function main() {
   console.log(`Seeding ${STUDY_TOPICS.length} study guide topics...`);
   const studyTopicRows = STUDY_TOPICS.map((topic) => ({
     id: topic.id,
+    cert_id: DATABRICKS_DEA_CERT_ID,
     domain: topic.domain,
     topic_order: topic.order,
     title: topic.title,

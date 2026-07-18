@@ -165,23 +165,23 @@ browser via `localStorage`.
 
 ### Available scripts
 
-| Script                      | Description                                             |
-| --------------------------- | ------------------------------------------------------- |
-| `npm run dev`               | Start the Vite dev server                               |
-| `npm run build`             | Type-check and build for production                     |
-| `npm run preview`           | Preview the production build locally                    |
-| `npm run db:seed`           | Push questions/glossary from `src/*/data` into Supabase |
+| Script                      | Description                                                 |
+| --------------------------- | ----------------------------------------------------------- |
+| `npm run dev`               | Start the Vite dev server                                   |
+| `npm run build`             | Type-check and build for production                         |
+| `npm run preview`           | Preview the production build locally                        |
+| `npm run db:seed`           | Push questions/glossary from `src/*/data` into Supabase     |
 | `npm run db:migrate`        | Apply pending SQL migrations to the linked Supabase project |
-| `npm run db:migrate:new`    | Scaffold a new empty migration file                     |
-| `npm run db:migrate:diff`   | Diff the linked remote DB against local migrations      |
-| `npm run lint`              | Run ESLint                                              |
-| `npm run lint:fix`          | Run ESLint with autofix                                 |
-| `npm run format`            | Format the codebase with Prettier                       |
-| `npm run format:check`      | Check formatting without writing                        |
-| `npm run typecheck`         | Type-check the app                                      |
-| `npm run typecheck:scripts` | Type-check `scripts/seed.ts`                            |
-| `npm test`                  | Run the unit/component test suite                       |
-| `npm run test:coverage`     | Run tests with a coverage report                        |
+| `npm run db:migrate:new`    | Scaffold a new empty migration file                         |
+| `npm run db:migrate:diff`   | Diff the linked remote DB against local migrations          |
+| `npm run lint`              | Run ESLint                                                  |
+| `npm run lint:fix`          | Run ESLint with autofix                                     |
+| `npm run format`            | Format the codebase with Prettier                           |
+| `npm run format:check`      | Check formatting without writing                            |
+| `npm run typecheck`         | Type-check the app                                          |
+| `npm run typecheck:scripts` | Type-check `scripts/seed.ts`                                |
+| `npm test`                  | Run the unit/component test suite                           |
+| `npm run test:coverage`     | Run tests with a coverage report                            |
 
 ### Docker
 

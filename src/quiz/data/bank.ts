@@ -1,45 +1,65 @@
-import type { Question, RawQuestion } from '../quiz.types';
-import { exam1 } from './exams/exam1';
-import { exam10 } from './exams/exam10';
-import { exam11 } from './exams/exam11';
-import { exam2 } from './exams/exam2';
-import { exam3 } from './exams/exam3';
-import { exam4 } from './exams/exam4';
-import { exam5 } from './exams/exam5';
-import { exam6 } from './exams/exam6';
-import { exam7 } from './exams/exam7';
-import { exam8 } from './exams/exam8';
-import { exam9 } from './exams/exam9';
-
-const EXAMS: readonly (readonly [number, RawQuestion[]])[] = [
-  [1, exam1],
-  [2, exam2],
-  [3, exam3],
-  [4, exam4],
-  [5, exam5],
-  [6, exam6],
-  [7, exam7],
-  [8, exam8],
-  [9, exam9],
-  [10, exam10],
-  [11, exam11],
-];
+import type { Question, RawQuestion } from '@/quiz/quiz.types';
 
 /**
- * The full question bank, built synchronously at import time from static
- * TypeScript modules. Because there is no async loading or DOM script
- * ordering involved, the bank (and therefore the sidebar stats derived
- * from it) is guaranteed to be available on the very first render.
+ * Eagerly import every exam file across every certification folder at
+ * build time, e.g. ./databricks-dea/exams/exam3.ts. Adding a new exam is
+ * just adding examN.ts under a cert's exams/ folder; adding a whole new
+ * certification is just adding a new top-level folder here -- neither
+ * requires touching this file.
+ *
+ * Each module is expected to export a single array named `examN`
+ * (matching its filename), following the existing convention.
  */
-export const QUESTION_BANK: Question[] = EXAMS.flatMap(([examNumber, questions]) =>
+const examModules = import.meta.glob<Record<string, RawQuestion[]>>('./*/exams/exam*.ts', {
+  eager: true,
+});
+
+const EXAM_PATH_PATTERN = /^\.\/([^/]+)\/exams\/exam(\d+)\.ts$/;
+
+const EXAMS: readonly (readonly [certId: string, examNumber: number, questions: RawQuestion[]])[] =
+  Object.entries(examModules)
+    .map(([path, mod]) => {
+      const match = EXAM_PATH_PATTERN.exec(path);
+      if (!match) {
+        throw new Error(`Unexpected exam file path, expected "./<certId>/exams/examN.ts": ${path}`);
+      }
+      const [, certId, examNumberStr] = match;
+      const examNumber = Number(examNumberStr);
+      const exportName = `exam${examNumber}`;
+      const questions = mod[exportName];
+      if (!questions) {
+        throw new Error(`Expected ${path} to export "${exportName}"`);
+      }
+      return [certId, examNumber, questions] as const;
+    })
+    .sort(([certA, examA], [certB, examB]) => certA.localeCompare(certB) || examA - examB);
+
+/**
+ * The full question bank across all certifications, built synchronously at
+ * import time from static TypeScript modules. Because there is no async
+ * loading or DOM script ordering involved, the bank (and therefore the
+ * sidebar stats derived from it) is guaranteed to be available on the very
+ * first render.
+ *
+ * Note: `id` intentionally keeps its original unprefixed shape
+ * ("E{exam}Q{n}") rather than being prefixed with certId, to stay
+ * compatible with existing `question_progress` rows in Supabase. Only
+ * Databricks DEA is loaded today, so there's no cross-cert collision yet --
+ * revisit this (and the matching `questions.id` values in Supabase) before
+ * a second certification reuses the same exam/question numbering.
+ */
+export const QUESTION_BANK: Question[] = EXAMS.flatMap(([certId, examNumber, questions]) =>
   questions.map((question) => ({
     ...question,
     exam: examNumber,
+    certId,
     id: `E${examNumber}Q${question.n}`,
   })),
 );
 
-export const EXAM_NUMBERS: number[] = EXAMS.map(([examNumber]) => examNumber);
+export const EXAM_NUMBERS: number[] = [...new Set(EXAMS.map(([, examNumber]) => examNumber))].sort(
+  (a, b) => a - b,
+);
 
 export const QUESTION_BY_ID: Map<string, Question> = new Map(
   QUESTION_BANK.map((question) => [question.id, question]),

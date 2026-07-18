@@ -40,7 +40,7 @@ export default defineConfig({
       exclude: [
         'src/main.tsx',
         'src/app/App.tsx',
-        'src/quiz/data/exams/**',
+        'src/quiz/data/*/exams/**',
         'src/study/data/**',
         'src/types/**',
         'src/vite-env.d.ts',
