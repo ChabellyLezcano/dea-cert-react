@@ -1,3 +1,4 @@
+// src/app/App.tsx (modificado: rutas ahora ancladas a /certifications/:certId)
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '@/auth/AuthContext';
@@ -12,6 +13,9 @@ import { DATABRICKS_DEA_CERT_ID } from '@/certifications/registry';
 const QuizPage = lazy(() => import('@/quiz/QuizPage').then((m) => ({ default: m.QuizPage })));
 const StudyPage = lazy(() => import('@/study/StudyPage').then((m) => ({ default: m.StudyPage })));
 const GuidePage = lazy(() => import('@/guide/GuidePage').then((m) => ({ default: m.GuidePage })));
+const CertificationsPage = lazy(() =>
+  import('@/certifications/CertificationsPage').then((m) => ({ default: m.CertificationsPage })),
+);
 
 export default function App() {
   return (
@@ -25,6 +29,17 @@ export default function App() {
             <Route
               path="/"
               element={<Navigate to={`/certifications/${DATABRICKS_DEA_CERT_ID}/quiz`} replace />}
+            />
+
+            <Route
+              path="/certifications"
+              element={
+                <AuthGuard>
+                  <Suspense fallback={<InlineSpinner label="Loading certifications..." />}>
+                    <CertificationsPage />
+                  </Suspense>
+                </AuthGuard>
+              }
             />
 
             <Route

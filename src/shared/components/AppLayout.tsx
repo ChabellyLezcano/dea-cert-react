@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { NavLink, useParams } from 'react-router-dom';
+import { Link, NavLink, useParams } from 'react-router-dom';
 import { useAuth } from '@/auth/useAuth';
 import { Button } from '@/shared/components/Button';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
@@ -14,7 +14,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-10 border-b border-ink-100 bg-surface/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="text-xl font-extrabold tracking-tight text-ink-900">DEA</span>
+            <Link to="/certifications" className="text-xl font-extrabold tracking-tight text-ink-900">
+              DEA
+            </Link>
             <span className="hidden text-xs text-ink-400 sm:inline">
               Databricks Certified Data Engineer Associate
             </span>
