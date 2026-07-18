@@ -1,17 +1,17 @@
-// src/app/App.tsx (modificado: nueva ruta /guide, lazy-loaded)
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { AuthProvider } from '../auth/AuthContext';
-import { AuthGuard } from '../auth/AuthGuard';
-import { LoginPage } from '../auth/LoginPage';
-import { SignupPage } from '../auth/SignupPage';
-import { AppLayout } from '../shared/components/AppLayout';
-import { InlineSpinner } from '../shared/components/InlineSpinner';
-import { ThemeProvider } from '../shared/theme/ThemeProvider';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AuthProvider } from '@/auth/AuthContext';
+import { AuthGuard } from '@/auth/AuthGuard';
+import { LoginPage } from '@/auth/LoginPage';
+import { SignupPage } from '@/auth/SignupPage';
+import { AppLayout } from '@/shared/components/AppLayout';
+import { InlineSpinner } from '@/shared/components/InlineSpinner';
+import { ThemeProvider } from '@/shared/theme/ThemeProvider';
+import { DATABRICKS_DEA_CERT_ID } from '@/certifications/registry';
 
-const QuizPage = lazy(() => import('../quiz/QuizPage').then((m) => ({ default: m.QuizPage })));
-const StudyPage = lazy(() => import('../study/StudyPage').then((m) => ({ default: m.StudyPage })));
-const GuidePage = lazy(() => import('../guide/GuidePage').then((m) => ({ default: m.GuidePage })));
+const QuizPage = lazy(() => import('@/quiz/QuizPage').then((m) => ({ default: m.QuizPage })));
+const StudyPage = lazy(() => import('@/study/StudyPage').then((m) => ({ default: m.StudyPage })));
+const GuidePage = lazy(() => import('@/guide/GuidePage').then((m) => ({ default: m.GuidePage })));
 
 export default function App() {
   return (
@@ -21,8 +21,14 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+
             <Route
               path="/"
+              element={<Navigate to={`/certifications/${DATABRICKS_DEA_CERT_ID}/quiz`} replace />}
+            />
+
+            <Route
+              path="/certifications/:certId/quiz"
               element={
                 <AuthGuard>
                   <AppLayout>
@@ -34,7 +40,7 @@ export default function App() {
               }
             />
             <Route
-              path="/study"
+              path="/certifications/:certId/study"
               element={
                 <AuthGuard>
                   <AppLayout>
@@ -46,7 +52,7 @@ export default function App() {
               }
             />
             <Route
-              path="/guide"
+              path="/certifications/:certId/guide"
               element={
                 <AuthGuard>
                   <AppLayout>

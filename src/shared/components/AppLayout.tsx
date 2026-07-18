@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
-import { useAuth } from '../../auth/useAuth';
-import { Button } from './Button';
-import { ThemeToggle } from './ThemeToggle';
+import { NavLink, useParams } from 'react-router-dom';
+import { useAuth } from '@/auth/useAuth';
+import { Button } from '@/shared/components/Button';
+import { ThemeToggle } from '@/shared/components/ThemeToggle';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
+  const { certId } = useParams<{ certId: string }>();
+  const base = `/certifications/${certId}`;
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -19,9 +21,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </div>
 
           <nav className="flex items-center gap-1 rounded-xl bg-ink-50 p-1" aria-label="Application sections">
-            <TabLink to="/">Practice</TabLink>
-            <TabLink to="/guide">Study Guide</TabLink>
-            <TabLink to="/study">Glossary</TabLink>
+            <TabLink to={`${base}/quiz`}>Practice</TabLink>
+            <TabLink to={`${base}/guide`}>Study Guide</TabLink>
+            <TabLink to={`${base}/study`}>Glossary</TabLink>
           </nav>
 
           <div className="flex min-w-0 items-center gap-3">

@@ -1,13 +1,15 @@
 // src/guide/GuidePage.tsx
 import { useMemo, useState } from 'react';
-import { TopicSidebar } from './components/TopicSidebar';
-import { TopicContent } from './components/TopicContent';
-import { useStudyTopics } from './hooks/useStudyTopics';
-import { InlineSpinner } from '../shared/components/InlineSpinner';
-import { normalizeText } from '../shared/utils/text';
+import { useParams } from 'react-router-dom';
+import { TopicSidebar } from '@/guide/components/TopicSidebar';
+import { TopicContent } from '@/guide/components/TopicContent';
+import { useStudyTopics } from '@/guide/hooks/useStudyTopics';
+import { InlineSpinner } from '@/shared/components/InlineSpinner';
+import { normalizeText } from '@/shared/utils/text';
 
 export function GuidePage() {
-  const { topics, isLoading, error } = useStudyTopics();
+  const { certId } = useParams<{ certId: string }>();
+  const { topics, isLoading, error } = useStudyTopics(certId);
   const [search, setSearch] = useState('');
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
 

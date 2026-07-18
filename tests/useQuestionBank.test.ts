@@ -5,7 +5,7 @@ const orderMock = vi.fn();
 const selectMock = vi.fn();
 const fromMock = vi.fn();
 
-vi.mock('../src/shared/lib/supabaseClient', () => ({
+vi.mock('@/shared/lib/supabaseClient', () => ({
   supabase: {
     from: (...args: unknown[]) => fromMock(...args),
   },
