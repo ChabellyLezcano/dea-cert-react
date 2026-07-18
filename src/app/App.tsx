@@ -8,7 +8,6 @@ import { SignupPage } from '@/auth/SignupPage';
 import { AppLayout } from '@/shared/components/AppLayout';
 import { InlineSpinner } from '@/shared/components/InlineSpinner';
 import { ThemeProvider } from '@/shared/theme/ThemeProvider';
-import { DATABRICKS_DEA_CERT_ID } from '@/certifications/registry';
 
 const QuizPage = lazy(() => import('@/quiz/QuizPage').then((m) => ({ default: m.QuizPage })));
 const StudyPage = lazy(() => import('@/study/StudyPage').then((m) => ({ default: m.StudyPage })));
@@ -26,10 +25,7 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
 
-            <Route
-              path="/"
-              element={<Navigate to={`/certifications/${DATABRICKS_DEA_CERT_ID}/quiz`} replace />}
-            />
+            <Route path="/" element={<Navigate to="/certifications" replace />} />
 
             <Route
               path="/certifications"
