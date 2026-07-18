@@ -19,7 +19,7 @@ const CERT_PATH_PATTERN = /^\.\/([^/]+)\/glossary\.ts$/;
 export const glossary: GlossaryTerm[] = Object.entries(glossaryModules).flatMap(([path, mod]) => {
   const match = CERT_PATH_PATTERN.exec(path);
   if (!match) {
-    throw new Error('Unexpected glossary file path, expected "./<certId>/glossary.ts": ' + path);
+    throw new Error(`Unexpected glossary file path, expected "./<certId>/glossary.ts": ${path}`);
   }
   const [, certId] = match;
   return mod.glossary.map((term) => ({ ...term, certId }));

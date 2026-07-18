@@ -38,6 +38,7 @@ export function useStudyTopics(certId?: string): UseStudyTopicsResult {
         }
         const mapped: StudyTopic[] = (data ?? []).map((row) => ({
           id: row.id,
+          certId: row.cert_id,
           domain: row.domain as DomainId,
           order: row.topic_order,
           title: row.title,

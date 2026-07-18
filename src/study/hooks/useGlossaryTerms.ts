@@ -33,6 +33,7 @@ export function useGlossaryTerms(certId?: string): UseGlossaryTermsResult {
       }
       const mapped: GlossaryTerm[] = (data ?? []).map((row) => ({
         t: row.term,
+        certId: row.cert_id,
         c: row.domain as DomainId,
         d: row.definition,
         k: row.code_snippet ?? undefined,
