@@ -17,8 +17,8 @@ describe('QUESTION_BANK', () => {
     }
   });
 
-  it('lists all 9 exam numbers', () => {
-    expect(EXAM_NUMBERS).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  it('lists all 11 exam numbers', () => {
+    expect(EXAM_NUMBERS).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
   });
 
   it('every question has at least one correct answer within its options range', () => {
