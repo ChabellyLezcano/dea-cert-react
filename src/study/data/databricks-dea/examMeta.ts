@@ -17,7 +17,7 @@ export const EXAM_META_BY_CERT: Record<string, ExamMeta> = Object.fromEntries(
   Object.entries(examMetaModules).map(([path, mod]) => {
     const match = CERT_PATH_PATTERN.exec(path);
     if (!match) {
-      throw new Error('Unexpected examMeta file path, expected "./<certId>/examMeta.ts": ' + path);
+      throw new Error(`Unexpected examMeta file path, expected "./<certId>/examMeta.ts": ${path}`);
     }
     const [, certId] = match;
     return [certId, mod.examMeta];

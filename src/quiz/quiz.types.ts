@@ -25,18 +25,33 @@ export interface RawQuestion {
 export interface Question extends RawQuestion {
   /** Exam number (1-9) this question belongs to */
   exam: number;
+  /** Which certification this question belongs to, e.g. "databricks-dea" */
+  certId: string;
   /** Stable identifier, e.g. "E3Q12" */
   id: string;
 }
 
-export type DomainId = 'P' | 'ING' | 'TRA' | 'JOBS' | 'CICD' | 'TRO' | 'GOV';
+/**
+ * Domain code. Historically a fixed union scoped to the Databricks DEA exam;
+ * now a plain string so other certifications can define their own domain
+ * codes without touching this type. Validity is enforced where it matters:
+ * a composite FK in Supabase (domains.cert_id + domains.code).
+ */
+export type DomainId = string;
 
-export interface Domain {
+/** A domain as authored in a certification's own domains.ts (no certId --
+ * the aggregator in src/quiz/data/domains.ts stamps it from the folder). */
+export interface RawDomain {
   id: DomainId;
   order: number;
   name: string;
   /** Official weight of this domain in the exam, as a percentage */
   weight: number;
+}
+
+export interface Domain extends RawDomain {
+  /** Which certification this domain belongs to, e.g. "databricks-dea" */
+  certId: string;
 }
 
 export type QuestionStatus = 'all' | 'pending' | 'wrong' | 'right';

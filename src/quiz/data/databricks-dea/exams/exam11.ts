@@ -2,7 +2,7 @@
 // (45 questions, single-choice). Explanations authored to match the style
 // of the other exam files, since the source PDF only listed correct
 // letters without rationale.
-import type { RawQuestion } from '../../quiz.types';
+import type { RawQuestion } from '@/quiz/quiz.types';
 
 export const exam11: RawQuestion[] = [
   {

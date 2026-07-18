@@ -1,4 +1,4 @@
-import type { RawStudyTopic } from '../../../types/guide.types';
+import type { RawStudyTopic } from '@/types/guide.types';
 
 export const pTopics: RawStudyTopic[] = [
   {

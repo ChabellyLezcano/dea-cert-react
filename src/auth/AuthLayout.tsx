@@ -18,9 +18,9 @@ export function AuthLayout({
       <div className="w-full max-w-md animate-stagger">
         <div className="mb-8 text-center">
           <span className="inline-flex items-baseline gap-1 text-2xl font-extrabold tracking-tight text-ink-900">
-            DEA<span className="text-brand-600">·26</span>
+            Cert<span className="text-brand-600">Prep</span>
           </span>
-          <p className="mt-1 text-sm text-ink-500">Databricks Certified Data Engineer Associate</p>
+          <p className="mt-1 text-sm text-ink-500">Practice questions, glossary &amp; study guides</p>
         </div>
         <div className="rounded-2xl border border-ink-100 bg-surface p-8 shadow-lg shadow-ink-900/5">
           <h1 className="text-xl font-bold text-ink-900">{title}</h1>

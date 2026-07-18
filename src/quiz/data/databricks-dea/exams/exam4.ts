@@ -1,5 +1,5 @@
 // Practice exam 4 — auto-generated from original data-exam4.js
-import type { RawQuestion } from '../../quiz.types';
+import type { RawQuestion } from '@/quiz/quiz.types';
 
 export const exam4: RawQuestion[] = [
   {

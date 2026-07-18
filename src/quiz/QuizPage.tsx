@@ -1,18 +1,20 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { Filters } from './components/Filters';
-import { MockExamPanel, type MockExamSessionStats } from './components/MockExamPanel';
-import { QuestionList } from './components/QuestionList';
-import { Pagination } from './components/Pagination';
-import { useProgress, buildGradedEntry, buildRevealedEntry } from './hooks/useProgress';
-import { useQuestionBank } from './hooks/useQuestionBank';
-import { useQuestionFilter, PAGE_SIZE } from './hooks/useQuestionFilter';
-import { generateMockExam, type MockExamOptions, type MockExamResult } from './utils/mockExam';
-import { useAuth } from '../auth/useAuth';
-import { InlineSpinner } from '../shared/components/InlineSpinner';
-import type { ProgressMap, Question } from './quiz.types';
+import { useParams } from 'react-router-dom';
+import { Sidebar } from '@/quiz/components/Sidebar';
+import { Filters } from '@/quiz/components/Filters';
+import { MockExamPanel, type MockExamSessionStats } from '@/quiz/components/MockExamPanel';
+import { QuestionList } from '@/quiz/components/QuestionList';
+import { Pagination } from '@/quiz/components/Pagination';
+import { useProgress, buildGradedEntry, buildRevealedEntry } from '@/quiz/hooks/useProgress';
+import { useQuestionBank } from '@/quiz/hooks/useQuestionBank';
+import { useQuestionFilter, PAGE_SIZE } from '@/quiz/hooks/useQuestionFilter';
+import { generateMockExam, type MockExamOptions, type MockExamResult } from '@/quiz/utils/mockExam';
+import { useAuth } from '@/auth/useAuth';
+import { InlineSpinner } from '@/shared/components/InlineSpinner';
+import type { ProgressMap, Question } from '@/quiz/quiz.types';
 
 export function QuizPage() {
+  const { certId } = useParams<{ certId: string }>();
   const { user } = useAuth();
   const {
     progress,
@@ -23,7 +25,7 @@ export function QuizPage() {
     retryQuestion,
     resetAll,
   } = useProgress(user?.id ?? null);
-  const { bank: fetchedBank, isLoading: isBankLoading, error: bankError } = useQuestionBank();
+  const { bank: fetchedBank, isLoading: isBankLoading, error: bankError } = useQuestionBank(certId);
 
   // Local copy so shuffling reorders the on-screen list without mutating
   // the data returned by Supabase. Re-synced whenever a fresh fetch lands,

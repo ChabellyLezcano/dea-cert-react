@@ -1,6 +1,6 @@
-import type { DomainId } from '../../quiz/quiz.types';
+import type { DomainId } from '@/quiz/quiz.types';
 
-export interface GlossaryTerm {
+export interface RawGlossaryTerm {
   /** Term title */
   t: string;
   /** Domain id this term belongs to */
@@ -13,6 +13,11 @@ export interface GlossaryTerm {
    * "not in scope" hint rather than removed, since it's still useful as a
    * distractor-recognition aid). */
   r?: 0 | 1;
+}
+
+export interface GlossaryTerm extends RawGlossaryTerm {
+  /** Which certification this term belongs to, e.g. "databricks-dea" */
+  certId: string;
 }
 
 export interface ExamMeta {

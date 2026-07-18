@@ -1,16 +1,18 @@
 import { useMemo, useState } from 'react';
-import { GlossaryList } from './components/GlossaryList';
-import { useGlossaryTerms } from './hooks/useGlossaryTerms';
-import { examMeta } from './data/examMeta';
-import { DOMAINS } from '../quiz/data/domains';
-import { normalizeText } from '../shared/utils/text';
-import { InlineSpinner } from '../shared/components/InlineSpinner';
-import type { DomainId } from '../quiz/quiz.types';
+import { useParams } from 'react-router-dom';
+import { GlossaryList } from '@/study/components/GlossaryList';
+import { useGlossaryTerms } from '@/study/hooks/useGlossaryTerms';
+import { examMeta } from '@/study/data/examMeta';
+import { DOMAINS } from '@/quiz/data/domains';
+import { normalizeText } from '@/shared/utils/text';
+import { InlineSpinner } from '@/shared/components/InlineSpinner';
+import type { DomainId } from '@/quiz/quiz.types';
 
 export function StudyPage() {
+  const { certId } = useParams<{ certId: string }>();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<DomainId | 'ALL'>('ALL');
-  const { terms: glossary, isLoading, error } = useGlossaryTerms();
+  const { terms: glossary, isLoading, error } = useGlossaryTerms(certId);
 
   const filteredTerms = useMemo(() => {
     const term = normalizeText(search.trim());

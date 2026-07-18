@@ -1,10 +1,16 @@
 /// <reference types="vitest/config" />
+import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   server: {
     port: 5173,
   },
@@ -40,7 +46,7 @@ export default defineConfig({
       exclude: [
         'src/main.tsx',
         'src/app/App.tsx',
-        'src/quiz/data/exams/**',
+        'src/quiz/data/*/exams/**',
         'src/study/data/**',
         'src/types/**',
         'src/vite-env.d.ts',

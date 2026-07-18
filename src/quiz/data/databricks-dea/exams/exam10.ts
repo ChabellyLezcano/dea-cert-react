@@ -1,6 +1,6 @@
 // Practice exam 10 — sourced from the BricksNotes practice test (45 questions,
 // N1–N7), not previously present in exams 1-9 of the DEA·26 question bank.
-import type { RawQuestion } from '../../quiz.types';
+import type { RawQuestion } from '@/quiz/quiz.types';
 
 export const exam10: RawQuestion[] = [
   // ---- P: Databricks Intelligence Platform ----
