@@ -33,7 +33,7 @@
     ]
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.110.6",
+    "@supabase/supabase-js": "^2.110.7",
     "mermaid": "^11.16.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
