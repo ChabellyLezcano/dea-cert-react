@@ -17,8 +17,10 @@ describe('QUESTION_BANK', () => {
     }
   });
 
-  it('lists all 11 exam numbers', () => {
-    expect(EXAM_NUMBERS).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+  it('lists exam numbers across every loaded certification, sorted and deduplicated', () => {
+    // Databricks DEA uses 1-11; AWS SAA uses 101 (see the note in
+    // src/quiz/data/aws-saa/exams/exam101.ts about why it's not 1).
+    expect(EXAM_NUMBERS).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 101]);
   });
 
   it('every question has at least one correct answer within its options range', () => {

@@ -24,6 +24,12 @@ export const CERTIFICATIONS: readonly CertificationMeta[] = [
     provider: 'Databricks',
     examGuideVersion: '2026-05-04',
   },
+  {
+    id: 'aws-saa',
+    name: 'Solutions Architect Associate',
+    provider: 'AWS',
+    examGuideVersion: 'SAA-C03',
+  },
 ];
 
 /** Convenience constant for the certification currently loaded end-to-end. */
