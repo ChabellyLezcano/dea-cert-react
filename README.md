@@ -1,10 +1,19 @@
-# DEA·26 — Databricks Data Engineer Associate Prep
+# Cert Prep — Multi-certification study platform
 
-Personal review platform for the **Databricks Certified Data Engineer Associate**
-certification (exam guide version May 4, 2026). React + TypeScript + Supabase
-rewrite of the original static HTML/CSS/JS tool, with email/password
-authentication, light/dark/system theming, and content + progress fully
-backed by a Supabase database.
+Personal platform for studying IT certifications: practice questions, a
+searchable glossary, and study guides, with progress tracked per
+certification and per account. React + TypeScript + Supabase.
+
+**Currently loaded certification:**
+
+- **Databricks Certified Data Engineer Associate** (exam guide version
+  May 4, 2026) — 438 practice questions across 9 practice exams and a
+  264-term glossary, grouped by the 7 official exam domains.
+
+The data model supports multiple certifications side by side (see
+`certifications` / `domains` in `supabase/migrations/`); the UI currently
+surfaces only Databricks content while the certification-aware routing and
+catalog page are being built out.
 
 ## What's included
 
@@ -75,7 +84,9 @@ src/
 scripts/
 └── seed.ts           # Pushes questions/glossary from src/*/data into Supabase
 supabase/
-└── migrations/       # SQL: question_progress, questions, glossary_terms
+├── config.toml       # Supabase CLI config (linked project ref lives here)
+└── migrations/       # SQL: question_progress, questions, glossary_terms,
+                       #   study_topics, certifications, domains
 ```
 
 **Note on `src/quiz/data/exams/*.ts` and `src/study/data/glossary.ts`:** these
@@ -90,17 +101,41 @@ fixed reference data rather than editable content.
 ### 1. Create a Supabase project
 
 1. Go to [supabase.com](https://supabase.com) and create a new project.
-2. In the SQL editor, run the migrations **in order**:
-   - `supabase/migrations/0001_init.sql` — creates `question_progress`
-     (per-user answers) with row-level security.
-   - `supabase/migrations/0002_content.sql` — creates `questions` and
-     `glossary_terms` (shared, read-only content) with row-level security,
-     and links `question_progress.question_id` to `questions.id`.
-3. In **Project Settings → API**, copy the **Project URL**, the **anon
+2. In **Project Settings → API**, copy the **Project URL**, the **anon
    public key**, and the **service_role key**.
-4. In **Authentication → Providers**, make sure "Email" is enabled. For local
+3. In **Authentication → Providers**, make sure "Email" is enabled. For local
    development you may want to disable "Confirm email" so you can sign up
    and sign in immediately.
+4. Link the local repo to your project (one-time step) and push the
+   migrations:
+
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref <your-project-ref>
+   npm run db:migrate
+   ```
+
+   `<your-project-ref>` is the id in your project's dashboard URL
+   (`https://supabase.com/dashboard/project/<project-ref>`). This applies
+   every file under `supabase/migrations/` in order:
+   - `0001_init.sql` — `question_progress` (per-user answers) with row-level
+     security.
+   - `0002_content.sql` — `questions` and `glossary_terms` (shared,
+     read-only content), linked to `question_progress`.
+   - `0003_study_guide.sql` — `study_topics` (long-form notes per domain).
+   - `0004_certifications.sql` — `certifications` and `domains` as
+     first-class tables, so content isn't tied to a single certification.
+
+   If a project already had `0001`–`0003` applied by hand (e.g. pasted into
+   the SQL editor before this CLI setup existed), mark them as already
+   applied instead of re-running them, then push the rest:
+
+   ```bash
+   npx supabase migration repair --status applied 0001
+   npx supabase migration repair --status applied 0002
+   npx supabase migration repair --status applied 0003
+   npm run db:migrate
+   ```
 
 ### 2. Configure environment variables
 
@@ -136,6 +171,9 @@ browser via `localStorage`.
 | `npm run build`             | Type-check and build for production                     |
 | `npm run preview`           | Preview the production build locally                    |
 | `npm run db:seed`           | Push questions/glossary from `src/*/data` into Supabase |
+| `npm run db:migrate`        | Apply pending SQL migrations to the linked Supabase project |
+| `npm run db:migrate:new`    | Scaffold a new empty migration file                     |
+| `npm run db:migrate:diff`   | Diff the linked remote DB against local migrations      |
 | `npm run lint`              | Run ESLint                                              |
 | `npm run lint:fix`          | Run ESLint with autofix                                 |
 | `npm run format`            | Format the codebase with Prettier                       |
