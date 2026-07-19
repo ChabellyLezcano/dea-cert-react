@@ -1,4 +1,4 @@
-// src/app/App.tsx (modificado: rutas ahora ancladas a /certifications/:certId)
+// src/app/App.tsx
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '@/auth/AuthContext';
@@ -10,8 +10,13 @@ import { InlineSpinner } from '@/shared/components/InlineSpinner';
 import { ThemeProvider } from '@/shared/theme/ThemeProvider';
 
 const QuizPage = lazy(() => import('@/quiz/QuizPage').then((m) => ({ default: m.QuizPage })));
-const StudyPage = lazy(() => import('@/study/StudyPage').then((m) => ({ default: m.StudyPage })));
-const GuidePage = lazy(() => import('@/guide/GuidePage').then((m) => ({ default: m.GuidePage })));
+const MockExamPage = lazy(() => import('@/quiz/MockExamPage').then((m) => ({ default: m.MockExamPage })));
+const AiGeneratePage = lazy(() =>
+  import('@/quiz/ai/AiGeneratePage').then((m) => ({ default: m.AiGeneratePage })),
+);
+const AiFavoritesPage = lazy(() =>
+  import('@/quiz/ai/AiFavoritesPage').then((m) => ({ default: m.AiFavoritesPage })),
+);
 const CertificationsPage = lazy(() =>
   import('@/certifications/CertificationsPage').then((m) => ({ default: m.CertificationsPage })),
 );
@@ -51,24 +56,36 @@ export default function App() {
               }
             />
             <Route
-              path="/certifications/:certId/study"
+              path="/certifications/:certId/mock-exam"
               element={
                 <AuthGuard>
                   <AppLayout>
-                    <Suspense fallback={<InlineSpinner label="Loading study section..." />}>
-                      <StudyPage />
+                    <Suspense fallback={<InlineSpinner label="Loading mock exam..." />}>
+                      <MockExamPage />
                     </Suspense>
                   </AppLayout>
                 </AuthGuard>
               }
             />
             <Route
-              path="/certifications/:certId/guide"
+              path="/certifications/:certId/ai-generate"
               element={
                 <AuthGuard>
                   <AppLayout>
-                    <Suspense fallback={<InlineSpinner label="Loading study guide..." />}>
-                      <GuidePage />
+                    <Suspense fallback={<InlineSpinner label="Loading AI question generator..." />}>
+                      <AiGeneratePage />
+                    </Suspense>
+                  </AppLayout>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/certifications/:certId/ai-favorites"
+              element={
+                <AuthGuard>
+                  <AppLayout>
+                    <Suspense fallback={<InlineSpinner label="Loading favorite AI questions..." />}>
+                      <AiFavoritesPage />
                     </Suspense>
                   </AppLayout>
                 </AuthGuard>

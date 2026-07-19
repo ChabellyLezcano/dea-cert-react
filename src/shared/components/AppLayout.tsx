@@ -30,8 +30,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
           <nav className="flex items-center gap-1 rounded-xl bg-ink-50 p-1" aria-label="Application sections">
             <TabLink to={`${base}/quiz`}>Practice</TabLink>
-            <TabLink to={`${base}/guide`}>Study Guide</TabLink>
-            <TabLink to={`${base}/study`}>Glossary</TabLink>
+            <TabLink to={`${base}/mock-exam`}>Examen simulado</TabLink>
+            <TabLink to={`${base}/ai-generate`}>Generar IA</TabLink>
+            <TabLink to={`${base}/ai-favorites`}>Favoritas IA</TabLink>
           </nav>
 
           <HeaderMenu />

@@ -66,41 +66,6 @@ async function main() {
     if (error) throw new Error(`Failed to seed questions: ${error.message}`);
     console.log(`  ...${batch.length} rows upserted`);
   }
-
-  console.log(`Seeding ${glossary.length} glossary terms...`);
-  const glossaryRows = glossary.map((term) => ({
-    term: term.t,
-    cert_id: term.certId,
-    domain: term.c,
-    definition: term.d,
-    code_snippet: term.k ?? null,
-    retired: term.r === 1,
-  }));
-
-  for (const batch of chunk(glossaryRows, CHUNK_SIZE)) {
-    const { error } = await supabase.from('glossary_terms').upsert(batch, { onConflict: 'term' });
-    if (error) throw new Error(`Failed to seed glossary terms: ${error.message}`);
-    console.log(`  ...${batch.length} rows upserted`);
-  }
-
-  console.log(`Seeding ${STUDY_TOPICS.length} study guide topics...`);
-  const studyTopicRows = STUDY_TOPICS.map((topic) => ({
-    id: topic.id,
-    cert_id: topic.certId,
-    domain: topic.domain,
-    topic_order: topic.order,
-    title: topic.title,
-    summary: topic.summary,
-    content_md: topic.contentMd,
-  }));
-
-  for (const batch of chunk(studyTopicRows, CHUNK_SIZE)) {
-    const { error } = await supabase.from('study_topics').upsert(batch, { onConflict: 'id' });
-    if (error) throw new Error(`Failed to seed study guide topics: ${error.message}`);
-    console.log(`  ...${batch.length} rows upserted`);
-  }
-
-  console.log('Done. Questions, glossary and study guide are now served from Supabase.');
 }
 
 main().catch((error) => {

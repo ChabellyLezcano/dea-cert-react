@@ -13,6 +13,10 @@ export interface CertificationMeta {
   /** Stable slug id, matches certifications.id in Supabase, e.g. "databricks-dea" */
   id: string;
   name: string;
+  /** Short label used in tight UI spots (header wordmark, tab titles),
+   * e.g. "DEA", "SAA". Kept as an explicit field rather than derived from
+   * `id`, since not every future cert's slug will cleanly map to one. */
+  acronym: string;
   provider: string;
   examGuideVersion?: string;
 }
@@ -21,12 +25,14 @@ export const CERTIFICATIONS: readonly CertificationMeta[] = [
   {
     id: 'databricks-dea',
     name: 'Data Engineer Associate',
+    acronym: 'DEA',
     provider: 'Databricks',
     examGuideVersion: '2026-05-04',
   },
   {
     id: 'aws-saa',
     name: 'Solutions Architect Associate',
+    acronym: 'SAA',
     provider: 'AWS',
     examGuideVersion: 'SAA-C03',
   },
@@ -34,3 +40,11 @@ export const CERTIFICATIONS: readonly CertificationMeta[] = [
 
 /** Convenience constant for the certification currently loaded end-to-end. */
 export const DATABRICKS_DEA_CERT_ID = 'databricks-dea';
+
+/** Looks up a certification's metadata by its route id. Returns undefined
+ * for an unknown or missing id -- callers should fall back sensibly (see
+ * AppLayout's use of this for the header wordmark). */
+export function getCertification(id: string | undefined): CertificationMeta | undefined {
+  if (!id) return undefined;
+  return CERTIFICATIONS.find((cert) => cert.id === id);
+}
