@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Sidebar } from '@/quiz/components/Sidebar';
 import { Filters } from '@/quiz/components/Filters';
 import { MockExamPanel, type MockExamSessionStats } from '@/quiz/components/MockExamPanel';
+import { AiPracticePanel } from '@/quiz/components/AiPracticePanel';
 import { QuestionList } from '@/quiz/components/QuestionList';
 import { Pagination } from '@/quiz/components/Pagination';
 import { useProgress, buildGradedEntry, buildRevealedEntry } from '@/quiz/hooks/useProgress';
@@ -258,6 +259,10 @@ export function QuizPage() {
           onFinish={handleFinishMockExam}
           onExit={handleExitMockExam}
         />
+
+        <div className="mb-5">
+          <AiPracticePanel certId={certId ?? ''} userId={user?.id ?? null} />
+        </div>
 
         {mockExam ? (
           <>

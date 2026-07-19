@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { DOMAIN_MAP } from '../data/domains';
 import { Highlight } from '../../shared/components/Highlight';
 import { Button } from '../../shared/components/Button';
@@ -14,9 +14,22 @@ interface QuestionCardProps {
   onGrade: (question: Question, picked: number[]) => void;
   onReveal: (question: Question) => void;
   onRetry: (questionId: string) => void;
+  /** Extra badge shown in the tag row, e.g. "Generada por IA". */
+  badge?: React.ReactNode;
+  /** Extra controls shown alongside Show answer/Retry, e.g. save/remove favorite. */
+  extraActions?: React.ReactNode;
 }
 
-export function QuestionCard({ question, entry, searchTerm, onGrade, onReveal, onRetry }: QuestionCardProps) {
+export function QuestionCard({
+  question,
+  entry,
+  searchTerm,
+  onGrade,
+  onReveal,
+  onRetry,
+  badge,
+  extraActions,
+}: QuestionCardProps) {
   const [selected, setSelected] = useState<number[]>([]);
   const domain = DOMAIN_MAP[question.d];
   const isMulti = question.m === 1;
@@ -66,9 +79,12 @@ export function QuestionCard({ question, entry, searchTerm, onGrade, onReveal, o
         <span className="max-w-full break-words rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
           S{domain.order} · {domain.name}
         </span>
-        <span className="rounded-full bg-ink-50 px-2.5 py-1 text-xs font-medium text-ink-500">
-          Exam {question.exam} · Q{question.n}
-        </span>
+        {question.exam > 0 && (
+          <span className="rounded-full bg-ink-50 px-2.5 py-1 text-xs font-medium text-ink-500">
+            Exam {question.exam} · Q{question.n}
+          </span>
+        )}
+        {badge}
         {isMulti && (
           <span className="rounded-full bg-accent-400/30 px-2.5 py-1 text-xs font-semibold text-accent-600">
             multi-answer
@@ -76,9 +92,9 @@ export function QuestionCard({ question, entry, searchTerm, onGrade, onReveal, o
         )}
       </div>
 
-      <p className="whitespace-pre-line break-words text-[15px] leading-relaxed text-ink-800">
-        <Highlight text={question.q} term={searchTerm} />
-      </p>
+      <div className="whitespace-pre-line break-words text-[15px] leading-relaxed text-ink-800">
+        <TextWithCode text={question.q} searchTerm={searchTerm} />
+      </div>
 
       <div className="mt-4 flex flex-col gap-2">
         {displayOrder.map((originalIndex, position) => (
@@ -119,6 +135,7 @@ export function QuestionCard({ question, entry, searchTerm, onGrade, onReveal, o
             </Button>
           </>
         )}
+        {extraActions}
       </div>
 
       {entry && (
@@ -126,9 +143,9 @@ export function QuestionCard({ question, entry, searchTerm, onGrade, onReveal, o
           <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink-400">
             Explanation
           </span>
-          <p className="break-words">
-            <Highlight text={question.x} term={searchTerm} />
-          </p>
+          <div className="break-words">
+            <TextWithCode text={question.x} searchTerm={searchTerm} />
+          </div>
         </div>
       )}
     </article>
@@ -194,9 +211,64 @@ function OptionButton({
       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-current text-[11px] font-bold">
         {letter}
       </span>
-      <span className="min-w-0 break-words text-ink-700">
-        <Highlight text={text} term={searchTerm} />
+      <span className="min-w-0 whitespace-pre-line break-words text-ink-700">
+        <TextWithCode text={text} searchTerm={searchTerm} />
       </span>
     </button>
+  );
+}
+
+/** Splits text on fenced code blocks (```...```), rendering fenced parts
+ * as a monospace code box and everything else as normal prose (still
+ * passed through Highlight for search-term matching). Text with no
+ * fences renders exactly as before -- this is why none of your existing
+ * bank questions change: they've never used the ``` convention, only the
+ * study guide topics have. New AI-generated questions are prompted to use
+ * ``` around real code/config snippets, so this only activates there. */
+function splitCodeBlocks(text: string): { type: 'text' | 'code'; content: string }[] {
+  const fenceRegex = /```[a-zA-Z]*\n?([\s\S]*?)```/g;
+  const segments: { type: 'text' | 'code'; content: string }[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = fenceRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ type: 'text', content: text.slice(lastIndex, match.index) });
+    }
+    segments.push({ type: 'code', content: match[1].replace(/\n$/, '') });
+    lastIndex = fenceRegex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    segments.push({ type: 'text', content: text.slice(lastIndex) });
+  }
+  return segments;
+}
+
+function TextWithCode({ text, searchTerm }: { text: string; searchTerm: string }) {
+  const segments = useMemo(() => splitCodeBlocks(text), [text]);
+
+  // Common case, zero fences: render exactly as the old plain <Highlight>
+  // call did, no wrapper overhead.
+  if (segments.length === 1 && segments[0].type === 'text') {
+    return <Highlight text={text} term={searchTerm} />;
+  }
+
+  return (
+    <>
+      {segments.map((segment, index) =>
+        segment.type === 'code' ? (
+          <pre
+            key={index}
+            className="my-2 overflow-x-auto rounded-lg bg-ink-900 px-3 py-2.5 text-xs leading-relaxed text-ink-50"
+          >
+            <code className="font-mono">{segment.content}</code>
+          </pre>
+        ) : (
+          <Fragment key={index}>
+            <Highlight text={segment.content} term={searchTerm} />
+          </Fragment>
+        ),
+      )}
+    </>
   );
 }

@@ -18,7 +18,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "db:seed": "vite-node scripts/seed.ts",
-    "db:migrate": "supabase db push",
+    "db:migrate": "npx supabase@latest db push",
     "db:migrate:new": "supabase migration new",
     "db:migrate:diff": "supabase db diff --linked",
     "prepare": "husky"

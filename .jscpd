@@ -1,0 +1,14 @@
+{
+  "threshold": 3,
+  "reporters": ["console", "badge"],
+  "ignore": [
+    "node_modules/**",
+    "dist/**",
+    "coverage/**",
+    "src/**/data/**/exams/**",
+    "src/**/data/**/glossary.ts",
+    "src/**/data/**/topics/**"
+  ],
+  "absolute": true,
+  "gitignore": true
+}
