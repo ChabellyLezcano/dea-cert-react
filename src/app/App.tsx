@@ -1,4 +1,4 @@
-// src/app/App.tsx (modificado: rutas ahora ancladas a /certifications/:certId)
+// src/app/App.tsx
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '@/auth/AuthContext';
@@ -10,8 +10,6 @@ import { InlineSpinner } from '@/shared/components/InlineSpinner';
 import { ThemeProvider } from '@/shared/theme/ThemeProvider';
 
 const QuizPage = lazy(() => import('@/quiz/QuizPage').then((m) => ({ default: m.QuizPage })));
-const StudyPage = lazy(() => import('@/study/StudyPage').then((m) => ({ default: m.StudyPage })));
-const GuidePage = lazy(() => import('@/guide/GuidePage').then((m) => ({ default: m.GuidePage })));
 const CertificationsPage = lazy(() =>
   import('@/certifications/CertificationsPage').then((m) => ({ default: m.CertificationsPage })),
 );
@@ -45,30 +43,6 @@ export default function App() {
                   <AppLayout>
                     <Suspense fallback={<InlineSpinner label="Loading questions..." />}>
                       <QuizPage />
-                    </Suspense>
-                  </AppLayout>
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="/certifications/:certId/study"
-              element={
-                <AuthGuard>
-                  <AppLayout>
-                    <Suspense fallback={<InlineSpinner label="Loading study section..." />}>
-                      <StudyPage />
-                    </Suspense>
-                  </AppLayout>
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="/certifications/:certId/guide"
-              element={
-                <AuthGuard>
-                  <AppLayout>
-                    <Suspense fallback={<InlineSpinner label="Loading study guide..." />}>
-                      <GuidePage />
                     </Suspense>
                   </AppLayout>
                 </AuthGuard>
