@@ -42,7 +42,7 @@ export function useQuestionBank(certId?: string): UseQuestionBankResult {
           d: row.domain as DomainId,
           m: row.is_multi ? 1 : 0,
           q: row.question,
-          o: row.options,
+          o: row.options as string[],
           a: row.correct_answers,
           x: row.explanation,
         }));
