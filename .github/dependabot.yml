@@ -11,10 +11,12 @@ updates:
     open-pull-requests-limit: 10
     ignore:
       # typescript-eslint@8.64.0 still declares
-      # peer typescript@">=4.8.4 <6.1.0" — TS 7 breaks npm ci until it's
-      # updated. Remove this once typescript-eslint supports TS 7.
+      # peer typescript@">=4.8.4 <6.1.0" — anything >=6.1 breaks npm ci
+      # until typescript-eslint supports it. Bounded from below at >6.0
+      # (not a specific major) so this also catches a future 8.x, not
+      # just the 7.x that broke us before.
       - dependency-name: 'typescript'
-        versions: ['7.x']
+        versions: ['>= 6.1.0']
     groups:
       dev-dependencies:
         dependency-type: 'development'
