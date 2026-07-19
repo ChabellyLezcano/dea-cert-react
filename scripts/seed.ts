@@ -18,8 +18,6 @@ import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 import { QUESTION_BANK } from '@/quiz/data/bank';
-import { glossary } from '@/study/data/glossary';
-import { STUDY_TOPICS } from '@/guide/data/bank';
 import process from 'process';
 
 const CHUNK_SIZE = 200;
