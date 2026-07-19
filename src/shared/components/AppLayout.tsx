@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, NavLink, useParams } from 'react-router-dom';
 import { useAuth } from '@/auth/useAuth';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
 
 export function AppLayout({ children }: { children: ReactNode }) {
-  const { certId: _certId } = useParams<{ certId: string }>();
+  const { certId } = useParams<{ certId: string }>();
+  const base = `/certifications/${certId}`;
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -27,12 +28,35 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Link>
           </div>
 
+          <nav className="flex items-center gap-1 rounded-xl bg-ink-50 p-1" aria-label="Application sections">
+            <TabLink to={`${base}/quiz`}>Practice</TabLink>
+            <TabLink to={`${base}/mock-exam`}>Examen simulado</TabLink>
+            <TabLink to={`${base}/ai-generate`}>Generar IA</TabLink>
+            <TabLink to={`${base}/ai-favorites`}>Favoritas IA</TabLink>
+          </nav>
+
           <HeaderMenu />
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
     </div>
+  );
+}
+
+function TabLink({ to, children }: { to: string; children: ReactNode }) {
+  return (
+    <NavLink
+      to={to}
+      end
+      className={({ isActive }) =>
+        `rounded-lg px-4 py-2 text-sm font-semibold transition ${
+          isActive ? 'bg-surface text-brand-700 shadow-sm' : 'text-ink-500 hover:text-ink-700'
+        }`
+      }
+    >
+      {children}
+    </NavLink>
   );
 }
 
