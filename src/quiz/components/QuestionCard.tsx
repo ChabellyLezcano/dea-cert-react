@@ -1,4 +1,5 @@
 import { Fragment, useMemo, useState } from 'react';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import hljs from 'highlight.js/lib/core';
 import sql from 'highlight.js/lib/languages/sql';
 import python from 'highlight.js/lib/languages/python';
@@ -172,9 +173,15 @@ function Verdict({ entry }: { entry: QuestionProgress }) {
     return <span className="text-sm font-semibold text-ink-500">Answer revealed</span>;
   }
   return entry.ok ? (
-    <span className="text-sm font-semibold text-ok-600">✓ Correct</span>
+    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ok-600">
+      <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+      Correct
+    </span>
   ) : (
-    <span className="text-sm font-semibold text-ko-600">✗ Incorrect</span>
+    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ko-600">
+      <XCircle className="h-4 w-4" aria-hidden="true" />
+      Incorrect
+    </span>
   );
 }
 

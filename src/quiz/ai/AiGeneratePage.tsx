@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Check } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/shared/components/Button';
 import { QuestionCard } from '@/quiz/components/QuestionCard';
@@ -128,7 +129,14 @@ export function AiGeneratePage() {
               badge={<AiBadge />}
               extraActions={
                 <Button variant="ghost" onClick={() => handleSave(aiQ)} disabled={savedIds.has(aiQ.id)}>
-                  {savedIds.has(aiQ.id) ? 'Guardada ✓' : 'Guardar en favoritas'}
+                  {savedIds.has(aiQ.id) ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                      Guardada
+                    </span>
+                  ) : (
+                    'Guardar en favoritas'
+                  )}
                 </Button>
               }
             />

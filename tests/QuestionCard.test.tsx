@@ -48,7 +48,7 @@ describe('QuestionCard', () => {
       />,
     );
 
-    expect(screen.getByText('✓ Correct')).toBeInTheDocument();
+    expect(screen.getByText('Correct')).toBeInTheDocument();
     expect(screen.getByText(/incremental, scalable file ingestion/)).toBeInTheDocument();
   });
 
@@ -65,7 +65,7 @@ describe('QuestionCard', () => {
     );
 
     expect(screen.getByText('Auto Loader').closest('button')).toBeDisabled();
-    expect(screen.getByText('✗ Incorrect')).toBeInTheDocument();
+    expect(screen.getByText('Incorrect')).toBeInTheDocument();
   });
 
   it('calls onRetry with the question id when Retry is clicked', async () => {

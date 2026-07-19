@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import { useAuth } from '@/auth/useAuth';
 import { Button } from '@/shared/components/Button';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
@@ -34,7 +35,7 @@ export function CertificationsPage() {
             <Link
               key={cert.id}
               to={`/certifications/${cert.id}/quiz`}
-              className="flex flex-col rounded-2xl border border-ink-100 bg-surface p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md"
+              className="group flex flex-col rounded-2xl border border-ink-100 bg-surface p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md"
             >
               <span className="text-xs font-semibold uppercase tracking-wide text-brand-600">
                 {cert.provider}
@@ -43,7 +44,13 @@ export function CertificationsPage() {
               {cert.examGuideVersion && (
                 <span className="mt-2 text-xs text-ink-400">Exam guide: {cert.examGuideVersion}</span>
               )}
-              <span className="mt-4 text-sm font-semibold text-action">Start studying →</span>
+              <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-action">
+                Start studying
+                <ArrowRight
+                  className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
+              </span>
             </Link>
           ))}
         </div>
