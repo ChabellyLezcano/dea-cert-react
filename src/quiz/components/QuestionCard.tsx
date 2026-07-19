@@ -1,9 +1,24 @@
 import { Fragment, useMemo, useState } from 'react';
+import hljs from 'highlight.js/lib/core';
+import sql from 'highlight.js/lib/languages/sql';
+import python from 'highlight.js/lib/languages/python';
+import yaml from 'highlight.js/lib/languages/yaml';
+import bash from 'highlight.js/lib/languages/bash';
+import 'highlight.js/styles/vs2015.css';
 import { DOMAIN_MAP } from '../data/domains';
 import { Highlight } from '../../shared/components/Highlight';
 import { Button } from '../../shared/components/Button';
 import { shuffleIndices } from '../../shared/utils/shuffle';
 import type { Question, QuestionProgress } from '../quiz.types';
+
+// Registered once at module load. Covers every language actually used by
+// the exam bank and by AI-generated questions (PySpark reads as python,
+// Databricks CLI/bash reads as bash, DAB config reads as yaml).
+hljs.registerLanguage('sql', sql);
+hljs.registerLanguage('python', python);
+hljs.registerLanguage('yaml', yaml);
+hljs.registerLanguage('bash', bash);
+const CODE_LANGUAGE_SUBSET = ['sql', 'python', 'yaml', 'bash'];
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
@@ -244,11 +259,37 @@ function splitCodeBlocks(text: string): { type: 'text' | 'code'; content: string
   return segments;
 }
 
-function TextWithCode({ text, searchTerm }: { text: string; searchTerm: string }) {
-  const segments = useMemo(() => splitCodeBlocks(text), [text]);
+/** Splits a plain-text (non-fenced) segment on single-backtick inline code
+ * spans (`like this`) -- the convention actually used across the exam
+ * bank for short snippets (`spark.sql()`, `%sql`, table/file paths, config
+ * keys) that appear inline in a sentence rather than as a standalone
+ * block. Deliberately excludes newlines from the match so it can't
+ * accidentally swallow an unrelated stray backtick several lines later. */
+function splitInlineCode(text: string): { type: 'text' | 'inline-code'; content: string }[] {
+  const inlineRegex = /`([^`\n]+)`/g;
+  const segments: { type: 'text' | 'inline-code'; content: string }[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
 
-  // Common case, zero fences: render exactly as the old plain <Highlight>
-  // call did, no wrapper overhead.
+  while ((match = inlineRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ type: 'text', content: text.slice(lastIndex, match.index) });
+    }
+    segments.push({ type: 'inline-code', content: match[1] });
+    lastIndex = inlineRegex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    segments.push({ type: 'text', content: text.slice(lastIndex) });
+  }
+  return segments;
+}
+
+/** Renders a non-fenced text segment, styling any single-backtick inline
+ * code spans as a small monospace pill and passing everything else
+ * through Highlight for search-term matching. */
+function TextWithInlineCode({ text, searchTerm }: { text: string; searchTerm: string }) {
+  const segments = useMemo(() => splitInlineCode(text), [text]);
+
   if (segments.length === 1 && segments[0].type === 'text') {
     return <Highlight text={text} term={searchTerm} />;
   }
@@ -256,17 +297,65 @@ function TextWithCode({ text, searchTerm }: { text: string; searchTerm: string }
   return (
     <>
       {segments.map((segment, index) =>
-        segment.type === 'code' ? (
-          <pre
+        segment.type === 'inline-code' ? (
+          <code
             key={index}
-            className="my-2 overflow-x-auto rounded-lg bg-ink-900 px-3 py-2.5 text-xs leading-relaxed text-ink-50"
+            className="rounded-md bg-ink-100 px-1.5 py-0.5 font-mono text-[0.85em] text-ink-700"
           >
-            <code className="font-mono">{segment.content}</code>
-          </pre>
+            {segment.content}
+          </code>
         ) : (
           <Fragment key={index}>
             <Highlight text={segment.content} term={searchTerm} />
           </Fragment>
+        ),
+      )}
+    </>
+  );
+}
+
+/** Renders a fenced code block with real syntax highlighting (auto-detected
+ * among the languages actually used in this exam bank/AI generation:
+ * SQL, PySpark/Python, YAML, CLI/bash), styled with the vs2015 theme --
+ * the closest highlight.js theme to VS Code's Dark+ palette. Falls back
+ * to plain escaped text if highlighting throws for any reason, so a
+ * malformed snippet never breaks the whole question card. */
+function CodeBlock({ content }: { content: string }) {
+  const html = useMemo(() => {
+    try {
+      return hljs.highlightAuto(content, CODE_LANGUAGE_SUBSET).value;
+    } catch {
+      return content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+  }, [content]);
+
+  return (
+    <pre className="my-2 overflow-x-auto rounded-lg text-xs leading-relaxed">
+      {/* hljs escapes the source itself; this only ever renders its own highlighted-span markup, never raw user HTML */}
+      <code
+        className="hljs block rounded-lg px-3 py-2.5 font-mono"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </pre>
+  );
+}
+
+function TextWithCode({ text, searchTerm }: { text: string; searchTerm: string }) {
+  const segments = useMemo(() => splitCodeBlocks(text), [text]);
+
+  // Common case, zero fences and zero inline backticks: render exactly as
+  // the old plain <Highlight> call did, no wrapper overhead.
+  if (segments.length === 1 && segments[0].type === 'text' && !segments[0].content.includes('`')) {
+    return <Highlight text={text} term={searchTerm} />;
+  }
+
+  return (
+    <>
+      {segments.map((segment, index) =>
+        segment.type === 'code' ? (
+          <CodeBlock key={index} content={segment.content} />
+        ) : (
+          <TextWithInlineCode key={index} text={segment.content} searchTerm={searchTerm} />
         ),
       )}
     </>
