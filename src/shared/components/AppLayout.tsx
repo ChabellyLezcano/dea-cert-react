@@ -2,10 +2,12 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useParams } from 'react-router-dom';
 import { useAuth } from '@/auth/useAuth';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
+import { getCertification } from '@/certifications/registry';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { certId } = useParams<{ certId: string }>();
   const base = `/certifications/${certId}`;
+  const acronym = getCertification(certId)?.acronym ?? '···';
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -24,7 +26,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Link>
             <span className="h-5 w-px bg-ink-200" />
             <Link to="/certifications" className="text-xl font-extrabold tracking-tight text-ink-900">
-              DEA
+              {acronym}
             </Link>
           </div>
 
