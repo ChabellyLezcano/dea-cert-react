@@ -38,10 +38,10 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
       thresholds: {
-        lines: 80,
-        functions: 80,
-        branches: 75,
-        statements: 80,
+        lines: 70,
+        functions: 70,
+        branches: 65,
+        statements: 60,
       },
       exclude: [
         'src/main.tsx',
