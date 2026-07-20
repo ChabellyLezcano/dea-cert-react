@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CheckCircle2, Flag, Target, XCircle } from 'lucide-react';
 import { DOMAIN_MAP } from '../data/domains';
 import { Button } from '../../shared/components/Button';
+import { CircularProgress } from '../../shared/components/CircularProgress';
 import { useLocale } from '../../shared/i18n/useLocale';
 import type { MockExamOptions, MockExamResult, MockExamSource } from '../utils/mockExam';
 
@@ -52,27 +53,35 @@ export function MockExamPanel({
   if (active && finished && sessionStats) {
     const passThreshold = Math.ceil(sessionStats.total * 0.71); // ~ the real exam's 32/45 bar
     const passed = sessionStats.correct >= passThreshold;
+    const accuracyPercentage = sessionStats.total > 0 ? (sessionStats.correct / sessionStats.total) * 100 : 0;
     return (
       <div className="mb-5 rounded-2xl border border-ink-100 bg-surface p-4 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="flex items-center gap-1.5 text-sm font-bold text-ink-800">
-              <Flag className="h-4 w-4 shrink-0" aria-hidden="true" />
-              {t('mockExam.finishedTitle')}{' '}
-              <span className={passed ? 'text-ok-600' : 'text-ko-600'}>
-                {t('mockExam.scoreLine', { correct: sessionStats.correct, total: sessionStats.total })}
-              </span>
-            </p>
-            <p className="mt-0.5 flex items-start gap-1.5 text-xs text-ink-500">
-              {passed ? (
-                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ok-600" aria-hidden="true" />
-              ) : (
-                <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ko-600" aria-hidden="true" />
-              )}
-              <span>
-                {passed ? t('mockExam.passedNote') : t('mockExam.failedNote')} {t('mockExam.savedNote')}
-              </span>
-            </p>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <CircularProgress
+              percentage={accuracyPercentage}
+              colorClassName={passed ? 'text-ok-500' : 'text-ko-500'}
+              label={`${sessionStats.correct}/${sessionStats.total}`}
+            />
+            <div>
+              <p className="flex items-center gap-1.5 text-sm font-bold text-ink-800">
+                <Flag className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {t('mockExam.finishedTitle')}{' '}
+                <span className={passed ? 'text-ok-600' : 'text-ko-600'}>
+                  {t('mockExam.scoreLine', { correct: sessionStats.correct, total: sessionStats.total })}
+                </span>
+              </p>
+              <p className="mt-0.5 flex items-start gap-1.5 text-xs text-ink-500">
+                {passed ? (
+                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ok-600" aria-hidden="true" />
+                ) : (
+                  <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ko-600" aria-hidden="true" />
+                )}
+                <span>
+                  {passed ? t('mockExam.passedNote') : t('mockExam.failedNote')} {t('mockExam.savedNote')}
+                </span>
+              </p>
+            </div>
           </div>
           <Button variant="ghost" onClick={onExit}>
             {t('mockExam.exitFinished')}

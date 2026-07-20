@@ -3,6 +3,7 @@ import { DOMAINS } from '../data/domains';
 import { computeDomainStats } from '../utils/domainStats';
 import type { DomainId, ProgressMap, Question } from '../quiz.types';
 import { Button } from '../../shared/components/Button';
+import { CircularProgress } from '../../shared/components/CircularProgress';
 import { useLocale } from '../../shared/i18n/useLocale';
 
 interface SidebarProps {
@@ -88,6 +89,7 @@ function DomainButton({
   // Accuracy = correct out of ANSWERED (not out of total) — "how well am I
   // doing on what I've attempted so far", independent of how much is left.
   const accuracyPct = stats.answered > 0 ? Math.round((stats.correct / stats.answered) * 100) : null;
+  const circleTone = correctPct >= 80 ? 'text-ok-500' : correctPct >= 50 ? 'text-accent-500' : 'text-ko-500';
 
   return (
     <button
@@ -100,23 +102,41 @@ function DomainButton({
           : 'border-transparent active:border-ink-100 active:bg-ink-50 hover:border-ink-100 hover:bg-ink-50'
       }`}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span
-          className={`min-w-0 break-words text-sm font-semibold ${active ? 'text-brand-700' : 'text-ink-700'}`}
-        >
-          {label}
-        </span>
-        {weight !== null && <span className="shrink-0 text-xs font-medium text-ink-400">{weight}%</span>}
-      </div>
-      <div className="relative mt-2 h-1.5 w-full overflow-hidden rounded-full bg-ink-100">
-        <div className="absolute inset-y-0 left-0 bg-brand-200" style={{ width: `${progressPct}%` }} />
-        <div className="absolute inset-y-0 left-0 bg-ok-500" style={{ width: `${correctPct}%` }} />
-      </div>
-      <div className="mt-1.5 flex items-center justify-between gap-2">
-        <p className="text-xs text-ink-400">
-          {t('sidebar.statsLine', { correct: stats.correct, total: stats.total, answered: stats.answered })}
-        </p>
-        <AccuracyBadge accuracyPct={accuracyPct} />
+      <div className="flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <span
+              className={`min-w-0 break-words text-sm font-semibold ${active ? 'text-brand-700' : 'text-ink-700'}`}
+            >
+              {label}
+            </span>
+            {weight !== null && <span className="shrink-0 text-xs font-medium text-ink-400">{weight}%</span>}
+          </div>
+          <div className="relative mt-2 h-1.5 w-full overflow-hidden rounded-full bg-ink-100">
+            <div className="absolute inset-y-0 left-0 bg-brand-200" style={{ width: `${progressPct}%` }} />
+            <div className="absolute inset-y-0 left-0 bg-ok-500" style={{ width: `${correctPct}%` }} />
+          </div>
+          <div className="mt-1.5 flex items-center justify-between gap-2">
+            <p className="text-xs text-ink-400">
+              {t('sidebar.statsLine', {
+                correct: stats.correct,
+                total: stats.total,
+                answered: stats.answered,
+              })}
+            </p>
+            <AccuracyBadge accuracyPct={accuracyPct} />
+          </div>
+        </div>
+        {/* Correct-out-of-total, as a compact ring -- same "aciertos entre
+         * totales" reading as the mock exam's finished-screen ring, just
+         * small enough to sit inline in a sidebar row. */}
+        <CircularProgress
+          percentage={correctPct}
+          size={36}
+          strokeWidth={4}
+          colorClassName={circleTone}
+          trackClassName="text-ink-100"
+        />
       </div>
     </button>
   );
