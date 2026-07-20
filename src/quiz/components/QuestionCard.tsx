@@ -10,6 +10,7 @@ import { DOMAIN_MAP } from '../data/domains';
 import { Highlight } from '../../shared/components/Highlight';
 import { Button } from '../../shared/components/Button';
 import { shuffleIndices } from '../../shared/utils/shuffle';
+import { useLocale } from '../../shared/i18n/useLocale';
 import type { Question, QuestionProgress } from '../quiz.types';
 
 // Registered once at module load. Covers every language actually used by
@@ -47,6 +48,7 @@ export function QuestionCard({
   extraActions,
 }: QuestionCardProps) {
   const [selected, setSelected] = useState<number[]>([]);
+  const { t } = useLocale();
   const domain = DOMAIN_MAP[question.d];
   const isMulti = question.m === 1;
   const isAnswered = Boolean(entry);
@@ -97,13 +99,13 @@ export function QuestionCard({
         </span>
         {question.exam > 0 && (
           <span className="rounded-full bg-ink-50 px-2.5 py-1 text-xs font-medium text-ink-500">
-            Exam {question.exam} · Q{question.n}
+            {t('question.examQ', { exam: question.exam, n: question.n })}
           </span>
         )}
         {badge}
         {isMulti && (
           <span className="rounded-full bg-accent-400/30 px-2.5 py-1 text-xs font-semibold text-accent-600">
-            multi-answer
+            {t('question.multiAnswer')}
           </span>
         )}
       </div>
@@ -130,24 +132,24 @@ export function QuestionCard({
         {!entry && isMulti && (
           <>
             <Button onClick={submitMultiSelect} disabled={!selected.length}>
-              Check selection
+              {t('question.checkSelection')}
             </Button>
-            <span className="text-xs text-ink-400">choose {question.a.length}</span>
+            <span className="text-xs text-ink-400">{t('question.chooseN', { n: question.a.length })}</span>
             <Button variant="ghost" onClick={() => onReveal(question)}>
-              Show answer
+              {t('question.showAnswer')}
             </Button>
           </>
         )}
         {!entry && !isMulti && (
           <Button variant="ghost" onClick={() => onReveal(question)}>
-            Show answer
+            {t('question.showAnswer')}
           </Button>
         )}
         {entry && (
           <>
             <Verdict entry={entry} />
             <Button variant="ghost" onClick={handleRetry}>
-              Retry
+              {t('question.retry')}
             </Button>
           </>
         )}
@@ -157,7 +159,7 @@ export function QuestionCard({
       {entry && (
         <div className="mt-4 rounded-xl bg-ink-50 p-4 text-sm text-ink-600">
           <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink-400">
-            Explanation
+            {t('question.explanationLabel')}
           </span>
           <div className="break-words">
             <TextWithCode text={question.x} searchTerm={searchTerm} />
@@ -169,18 +171,19 @@ export function QuestionCard({
 }
 
 function Verdict({ entry }: { entry: QuestionProgress }) {
+  const { t } = useLocale();
   if (entry.revealed) {
-    return <span className="text-sm font-semibold text-ink-500">Answer revealed</span>;
+    return <span className="text-sm font-semibold text-ink-500">{t('question.answerRevealed')}</span>;
   }
   return entry.ok ? (
     <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ok-600">
       <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-      Correct
+      {t('question.correct')}
     </span>
   ) : (
     <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ko-600">
       <XCircle className="h-4 w-4" aria-hidden="true" />
-      Incorrect
+      {t('question.incorrect')}
     </span>
   );
 }

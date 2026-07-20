@@ -1,4 +1,5 @@
 import type { QuestionStatus } from '../quiz.types';
+import { useLocale } from '../../shared/i18n/useLocale';
 
 interface FiltersProps {
   search: string;
@@ -10,13 +11,6 @@ interface FiltersProps {
   onStatusChange: (value: QuestionStatus) => void;
 }
 
-const STATUS_OPTIONS: { value: QuestionStatus; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'wrong', label: 'Wrong' },
-  { value: 'right', label: 'Correct' },
-];
-
 export function Filters({
   search,
   exam,
@@ -26,6 +20,15 @@ export function Filters({
   onExamChange,
   onStatusChange,
 }: FiltersProps) {
+  const { t } = useLocale();
+
+  const statusOptions: { value: QuestionStatus; label: string }[] = [
+    { value: 'all', label: t('filters.status.all') },
+    { value: 'pending', label: t('filters.status.pending') },
+    { value: 'wrong', label: t('filters.status.wrong') },
+    { value: 'right', label: t('filters.status.right') },
+  ];
+
   return (
     <div className="flex flex-col gap-3">
       <div className="relative">
@@ -43,26 +46,26 @@ export function Filters({
           type="search"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Search questions, options and explanations… (VACUUM, broadcast, ABAC…)"
-          aria-label="Search questions"
+          placeholder={t('filters.searchPlaceholder')}
+          aria-label={t('filters.searchAriaLabel')}
           className="w-full rounded-xl border border-ink-200 bg-surface py-2.5 pl-10 pr-3.5 text-sm text-ink-800 shadow-sm placeholder:text-ink-300 focus:border-brand-400 focus:ring-2 focus:ring-brand-200"
         />
       </div>
 
       <div className="flex flex-wrap items-center gap-4">
-        <ChipGroup label="Exam" ariaLabel="Filter by exam">
+        <ChipGroup label={t('filters.examLabel')} ariaLabel={t('filters.filterByExam')}>
           <Chip active={exam === 0} onClick={() => onExamChange(0)}>
-            All exams
+            {t('filters.allExams')}
           </Chip>
           {examNumbers.map((n) => (
             <Chip key={n} active={exam === n} onClick={() => onExamChange(n)}>
-              Exam {n}
+              {t('filters.examN', { n })}
             </Chip>
           ))}
         </ChipGroup>
 
-        <ChipGroup label="Status" ariaLabel="Filter by status">
-          {STATUS_OPTIONS.map((option) => (
+        <ChipGroup label={t('filters.statusLabel')} ariaLabel={t('filters.filterByStatus')}>
+          {statusOptions.map((option) => (
             <Chip
               key={option.value}
               tone="accent"

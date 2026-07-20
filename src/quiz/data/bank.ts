@@ -1,4 +1,4 @@
-import type { Question, RawQuestion } from '@/quiz/quiz.types';
+import type { RawQuestion, SeededQuestion } from '@/quiz/quiz.types';
 
 /**
  * Eagerly import every exam file across every certification folder at
@@ -48,7 +48,7 @@ const EXAMS: readonly (readonly [certId: string, examNumber: number, questions: 
  * revisit this (and the matching `questions.id` values in Supabase) before
  * a second certification reuses the same exam/question numbering.
  */
-export const QUESTION_BANK: Question[] = EXAMS.flatMap(([certId, examNumber, questions]) =>
+export const QUESTION_BANK: SeededQuestion[] = EXAMS.flatMap(([certId, examNumber, questions]) =>
   questions.map((question) => ({
     ...question,
     exam: examNumber,
@@ -61,6 +61,6 @@ export const EXAM_NUMBERS: number[] = [...new Set(EXAMS.map(([, examNumber]) => 
   (a, b) => a - b,
 );
 
-export const QUESTION_BY_ID: Map<string, Question> = new Map(
+export const QUESTION_BY_ID: Map<string, SeededQuestion> = new Map(
   QUESTION_BANK.map((question) => [question.id, question]),
 );

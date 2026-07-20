@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Filters } from '../src/quiz/components/Filters';
+import { renderWithProviders as render } from './testUtils';
 
 describe('Filters', () => {
   it('renders one exam chip per entry in examNumbers, plus "All exams"', () => {

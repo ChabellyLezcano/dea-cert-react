@@ -9,6 +9,7 @@ import { useGenerateAiQuestions } from '@/quiz/hooks/useGenerateAiQuestions';
 import { useFavoriteAiQuestions } from '@/quiz/hooks/useFavoriteAiQuestions';
 import { useAuth } from '@/auth/useAuth';
 import { toDisplayQuestion, AiBadge } from '@/quiz/ai/aiDisplay';
+import { useLocale } from '@/shared/i18n/useLocale';
 import type { AiGeneratedQuestion } from '@/quiz/ai/aiQuestions.types';
 import type { DomainId, ProgressMap, Question } from '@/quiz/quiz.types';
 
@@ -17,6 +18,7 @@ const COUNT_PRESETS = [3, 5, 10];
 export function AiGeneratePage() {
   const { certId } = useParams<{ certId: string }>();
   const { user } = useAuth();
+  const { t } = useLocale();
 
   // DOMAINS aggregates every certification's domains together (see
   // src/quiz/data/domains.ts) -- must filter to this certId before using
@@ -64,13 +66,12 @@ export function AiGeneratePage() {
 
   return (
     <div className="rounded-2xl border border-ink-100 bg-surface p-4 shadow-sm">
-      <p className="mb-4 text-xs text-ink-500">
-        Se generan a partir de tus propias notas de estudio de este dominio. No se guardan solas — usa el
-        botón de guardar para conservar las que quieras en tu biblioteca de favoritas.
-      </p>
+      <p className="mb-4 text-xs text-ink-500">{t('ai.generate.intro')}</p>
 
       <div className="mb-4">
-        <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink-400">Dominio</span>
+        <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink-400">
+          {t('ai.generate.domainLabel')}
+        </span>
         <div className="flex flex-wrap gap-1.5">
           {certDomains.map((d) => (
             <button
@@ -90,7 +91,7 @@ export function AiGeneratePage() {
 
       <div className="mb-4">
         <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink-400">
-          Número de preguntas
+          {t('ai.generate.countLabel')}
         </span>
         <div className="flex gap-1.5">
           {COUNT_PRESETS.map((preset) => (
@@ -110,7 +111,7 @@ export function AiGeneratePage() {
       </div>
 
       <Button onClick={handleGenerate} isLoading={isLoading} disabled={!domain}>
-        {isLoading ? 'Generando...' : 'Generar preguntas'}
+        {isLoading ? t('ai.generate.generating') : t('ai.generate.button')}
       </Button>
 
       {error && <p className="mt-3 text-xs text-ko-600">{error}</p>}
@@ -132,10 +133,10 @@ export function AiGeneratePage() {
                   {savedIds.has(aiQ.id) ? (
                     <span className="inline-flex items-center gap-1.5">
                       <Check className="h-3.5 w-3.5" aria-hidden="true" />
-                      Guardada
+                      {t('ai.generate.saved')}
                     </span>
                   ) : (
-                    'Guardar en favoritas'
+                    t('ai.generate.save')
                   )}
                 </Button>
               }

@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { CheckCircle2, Flag, Target, XCircle } from 'lucide-react';
 import { DOMAIN_MAP } from '../data/domains';
 import { Button } from '../../shared/components/Button';
+import { useLocale } from '../../shared/i18n/useLocale';
 import type { MockExamOptions, MockExamResult, MockExamSource } from '../utils/mockExam';
 
 export interface MockExamSessionStats {
@@ -14,10 +16,10 @@ interface MockExamPanelProps {
   active: MockExamResult | null;
   /** Live tally of answered/correct questions: this session's draft-only
    * answers while the attempt is in progress, or the final committed tally
-   * once "Finalizar examen" has been pressed. Only meaningful while
+   * once "Finish exam" has been pressed. Only meaningful while
    * `active` is set. */
   sessionStats: MockExamSessionStats | null;
-  /** True once "Finalizar examen" has been pressed and the draft answers
+  /** True once "Finish exam" has been pressed and the draft answers
    * for this attempt have been committed to your real progress. */
   finished: boolean;
   maxAvailable: number;
@@ -27,12 +29,6 @@ interface MockExamPanelProps {
 }
 
 const QUESTION_COUNT_PRESETS = [15, 25, 45, 60, 90];
-
-const SOURCE_OPTIONS: { value: MockExamSource; label: string }[] = [
-  { value: 'unanswered', label: 'Sin responder' },
-  { value: 'answered', label: 'Ya respondidas' },
-  { value: 'both', label: 'Ambas' },
-];
 
 export function MockExamPanel({
   active,
@@ -45,6 +41,13 @@ export function MockExamPanel({
 }: MockExamPanelProps) {
   const [totalQuestions, setTotalQuestions] = useState(45);
   const [source, setSource] = useState<MockExamSource>('both');
+  const { t } = useLocale();
+
+  const sourceOptions: { value: MockExamSource; label: string }[] = [
+    { value: 'unanswered', label: t('mockExam.source.unanswered') },
+    { value: 'answered', label: t('mockExam.source.answered') },
+    { value: 'both', label: t('mockExam.source.both') },
+  ];
 
   if (active && finished && sessionStats) {
     const passThreshold = Math.ceil(sessionStats.total * 0.71); // ~ the real exam's 32/45 bar
@@ -53,21 +56,26 @@ export function MockExamPanel({
       <div className="mb-5 rounded-2xl border border-ink-100 bg-surface p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-bold text-ink-800">
-              🏁 Examen finalizado ·{' '}
+            <p className="flex items-center gap-1.5 text-sm font-bold text-ink-800">
+              <Flag className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {t('mockExam.finishedTitle')}{' '}
               <span className={passed ? 'text-ok-600' : 'text-ko-600'}>
-                {sessionStats.correct}/{sessionStats.total} correctas
+                {t('mockExam.scoreLine', { correct: sessionStats.correct, total: sessionStats.total })}
               </span>
             </p>
-            <p className="mt-0.5 text-xs text-ink-500">
-              {passed
-                ? '✓ Por encima del umbral aproximado de aprobado (~71%).'
-                : '✗ Por debajo del umbral aproximado de aprobado (~71%). '}
-              Tus respuestas ya se han guardado en tu progreso real.
+            <p className="mt-0.5 flex items-start gap-1.5 text-xs text-ink-500">
+              {passed ? (
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ok-600" aria-hidden="true" />
+              ) : (
+                <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ko-600" aria-hidden="true" />
+              )}
+              <span>
+                {passed ? t('mockExam.passedNote') : t('mockExam.failedNote')} {t('mockExam.savedNote')}
+              </span>
             </p>
           </div>
           <Button variant="ghost" onClick={onExit}>
-            Salir del simulacro
+            {t('mockExam.exitFinished')}
           </Button>
         </div>
       </div>
@@ -79,25 +87,19 @@ export function MockExamPanel({
       <div className="mb-5 rounded-2xl border border-brand-500 bg-brand-50 p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-bold text-brand-700">
-              🎯 Examen simulado en curso · {sessionStats.answered}/{sessionStats.total} respondidas
+            <p className="flex items-center gap-1.5 text-sm font-bold text-brand-700">
+              <Target className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {t('mockExam.inProgress', { answered: sessionStats.answered, total: sessionStats.total })}
             </p>
-            <p className="mt-0.5 text-xs text-ink-500">
-              Tus respuestas de este intento no se guardan hasta que pulses "Finalizar examen" — si sales
-              antes, no se modifica tu progreso real. Aunque incluyas preguntas ya respondidas antes,
-              aparecerán en blanco: es un intento nuevo.
-            </p>
+            <p className="mt-0.5 text-xs text-ink-500">{t('mockExam.draftNotice')}</p>
             {active.isShortOfTarget && (
-              <p className="mt-0.5 text-xs text-ink-500">
-                Algún dominio no tenía suficientes preguntas elegibles con este filtro; se completó con
-                preguntas de otros dominios.
-              </p>
+              <p className="mt-0.5 text-xs text-ink-500">{t('mockExam.shortOfTarget')}</p>
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Button onClick={onFinish}>Finalizar examen</Button>
+            <Button onClick={onFinish}>{t('mockExam.finish')}</Button>
             <Button variant="ghost" onClick={onExit}>
-              Salir sin guardar
+              {t('mockExam.exitWithoutSaving')}
             </Button>
           </div>
         </div>
@@ -110,7 +112,7 @@ export function MockExamPanel({
             >
               {entry.domain}: {entry.picked}
               {entry.picked !== entry.target && (
-                <span className="text-ink-400"> (objetivo {entry.target})</span>
+                <span className="text-ink-400"> {t('mockExam.targetSuffix', { n: entry.target })}</span>
               )}
             </span>
           ))}
@@ -121,16 +123,15 @@ export function MockExamPanel({
 
   return (
     <div className="mb-5 rounded-2xl border border-ink-100 bg-surface p-4 shadow-sm">
-      <h2 className="mb-3 text-sm font-bold text-ink-800">🎯 Generar examen simulado</h2>
-      <p className="mb-4 text-xs text-ink-500">
-        Mezcla preguntas de todos tus exámenes, repartidas por dominio según los porcentajes oficiales (P 6% ·
-        ING 21% · TRA 22% · JOBS 16% · CICD 10% · TRO 10% · GOV 15%). Tus respuestas solo se guardan si
-        finalizas el examen.
-      </p>
+      <h2 className="mb-3 flex items-center gap-1.5 text-sm font-bold text-ink-800">
+        <Target className="h-4 w-4 shrink-0" aria-hidden="true" />
+        {t('mockExam.generateTitle')}
+      </h2>
+      <p className="mb-4 text-xs text-ink-500">{t('mockExam.generateDescription')}</p>
 
       <div className="mb-4">
         <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink-400">
-          Número de preguntas
+          {t('mockExam.questionCountLabel')}
         </span>
         <div className="flex flex-wrap items-center gap-1.5">
           {QUESTION_COUNT_PRESETS.map((preset) => (
@@ -155,19 +156,19 @@ export function MockExamPanel({
               const next = Number(event.target.value);
               if (!Number.isNaN(next)) setTotalQuestions(next);
             }}
-            aria-label="Número de preguntas personalizado"
+            aria-label={t('mockExam.customCountAriaLabel')}
             className="w-20 rounded-full border border-ink-200 bg-surface px-3 py-1.5 text-xs text-ink-700 focus:border-brand-400 focus:ring-2 focus:ring-brand-200"
           />
-          <span className="text-xs text-ink-400">de {maxAvailable} disponibles</span>
+          <span className="text-xs text-ink-400">{t('mockExam.ofAvailable', { max: maxAvailable })}</span>
         </div>
       </div>
 
       <div className="mb-4">
         <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink-400">
-          Preguntas a incluir
+          {t('mockExam.sourceLabel')}
         </span>
         <div className="flex flex-wrap gap-1.5">
-          {SOURCE_OPTIONS.map((option) => (
+          {sourceOptions.map((option) => (
             <button
               key={option.value}
               type="button"
@@ -189,7 +190,7 @@ export function MockExamPanel({
         }
         disabled={maxAvailable === 0}
       >
-        Generar examen
+        {t('mockExam.generateButton')}
       </Button>
     </div>
   );

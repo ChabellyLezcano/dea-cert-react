@@ -1,3 +1,5 @@
+import type { Locale } from '@/shared/i18n/locale';
+
 /**
  * Raw question shape as authored in the exam data files.
  * Field names are kept short (n, d, m, q, o, a, x) to match the
@@ -21,13 +23,38 @@ export interface RawQuestion {
   x: string;
 }
 
-/** A question enriched with its exam number and a stable global id */
+/** A question enriched with its exam number and a stable global id.
+ *
+ * `q`/`o`/`x` are always already RESOLVED to the caller's current
+ * question/explanation language preference (see useQuestionBank and
+ * useFavoriteAiQuestions) -- every existing consumer (QuestionCard,
+ * search filtering, mock exam generation, tests) keeps working against
+ * plain strings with no changes. `qByLocale`/`oByLocale`/`xByLocale`
+ * carry whichever language variants are actually available in the
+ * database, for callers that need to know rather than just display. */
 export interface Question extends RawQuestion {
   /** Exam number (1-9) this question belongs to */
   exam: number;
   /** Which certification this question belongs to, e.g. "databricks-dea" */
   certId: string;
   /** Stable identifier, e.g. "E3Q12" */
+  id: string;
+  qByLocale: Partial<Record<Locale, string>>;
+  oByLocale: Partial<Record<Locale, string[]>>;
+  xByLocale: Partial<Record<Locale, string>>;
+}
+
+/** A RawQuestion assigned its exam/certId/id, as built by
+ * src/quiz/data/bank.ts from the static .ts exam files -- the source of
+ * truth `scripts/seed.ts` pushes into Supabase's question_en/options_en/
+ * explanation_es columns. Deliberately NOT a `Question`: it only ever
+ * carries the single language it was authored in (English question,
+ * Spanish explanation), it never gets a qByLocale/oByLocale/xByLocale
+ * because those only exist once real bilingual data has been read back
+ * out of the database. */
+export interface SeededQuestion extends RawQuestion {
+  exam: number;
+  certId: string;
   id: string;
 }
 

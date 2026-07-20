@@ -1,7 +1,9 @@
+import { RotateCcw, Shuffle } from 'lucide-react';
 import { DOMAINS } from '../data/domains';
 import { computeDomainStats } from '../utils/domainStats';
 import type { DomainId, ProgressMap, Question } from '../quiz.types';
 import { Button } from '../../shared/components/Button';
+import { useLocale } from '../../shared/i18n/useLocale';
 
 interface SidebarProps {
   bank: Question[];
@@ -23,17 +25,18 @@ export function Sidebar({
   onShuffle,
   onResetProgress,
 }: SidebarProps) {
+  const { t } = useLocale();
   const allStats = computeDomainStats(bank, 'ALL', progress);
 
   return (
     <aside className="flex w-full flex-col gap-4 lg:w-72 lg:shrink-0" aria-label="Exam sections">
       <div className="rounded-2xl border border-ink-100 bg-surface p-4 shadow-sm">
         <h2 className="mb-3 px-1 text-xs font-bold uppercase tracking-wide text-ink-400">
-          Sections · official weight
+          {t('sidebar.sectionsWeight')}
         </h2>
         <div className="flex flex-col gap-1.5">
           <DomainButton
-            label="All sections"
+            label={t('sidebar.allSections')}
             weight={null}
             stats={allStats}
             active={activeDomain === 'ALL'}
@@ -54,10 +57,12 @@ export function Sidebar({
 
       <div className="flex flex-col gap-2 rounded-2xl border border-ink-100 bg-surface p-4 shadow-sm">
         <Button variant="ghost" onClick={onShuffle} className="w-full">
-          ⤨ Shuffle question order
+          <Shuffle className="h-3.5 w-3.5" aria-hidden="true" />
+          {t('sidebar.shuffle')}
         </Button>
         <Button variant="danger" onClick={onResetProgress} className="w-full">
-          ⟲ Reset saved progress
+          <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+          {t('sidebar.resetProgress')}
         </Button>
       </div>
     </aside>
@@ -77,6 +82,7 @@ function DomainButton({
   active: boolean;
   onClick: () => void;
 }) {
+  const { t } = useLocale();
   const progressPct = stats.total ? Math.round((stats.answered / stats.total) * 100) : 0;
   const correctPct = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
   // Accuracy = correct out of ANSWERED (not out of total) — "how well am I
@@ -108,7 +114,7 @@ function DomainButton({
       </div>
       <div className="mt-1.5 flex items-center justify-between gap-2">
         <p className="text-xs text-ink-400">
-          {stats.correct}/{stats.total} correct · {stats.answered} answered
+          {t('sidebar.statsLine', { correct: stats.correct, total: stats.total, answered: stats.answered })}
         </p>
         <AccuracyBadge accuracyPct={accuracyPct} />
       </div>
@@ -119,11 +125,17 @@ function DomainButton({
 /** Correct-out-of-answered percentage, color-coded so a glance tells you
  * whether a section needs more review (red/amber) or is solid (green). */
 function AccuracyBadge({ accuracyPct }: { accuracyPct: number | null }) {
+  const { t } = useLocale();
+
   if (accuracyPct === null) {
-    return <span className="shrink-0 text-xs font-medium text-ink-300">No attempts yet</span>;
+    return <span className="shrink-0 text-xs font-medium text-ink-300">{t('sidebar.noAttempts')}</span>;
   }
 
   const tone = accuracyPct >= 80 ? 'text-ok-600' : accuracyPct >= 50 ? 'text-accent-600' : 'text-ko-600';
 
-  return <span className={`shrink-0 text-xs font-bold ${tone}`}>{accuracyPct}% accuracy</span>;
+  return (
+    <span className={`shrink-0 text-xs font-bold ${tone}`}>
+      {t('sidebar.accuracy', { pct: accuracyPct })}
+    </span>
+  );
 }

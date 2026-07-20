@@ -9,11 +9,13 @@ import { useQuestionBank } from '@/quiz/hooks/useQuestionBank';
 import { useQuestionFilter } from '@/quiz/hooks/useQuestionFilter';
 import { useAuth } from '@/auth/useAuth';
 import { InlineSpinner } from '@/shared/components/InlineSpinner';
+import { useLocale } from '@/shared/i18n/useLocale';
 import type { Question } from '@/quiz/quiz.types';
 
 export function QuizPage() {
   const { certId } = useParams<{ certId: string }>();
   const { user } = useAuth();
+  const { t } = useLocale();
   const {
     progress,
     isLoading: isProgressLoading,
@@ -92,22 +94,21 @@ export function QuizPage() {
   }, [setPage]);
 
   const handleReset = useCallback(() => {
-    if (window.confirm('Delete all saved progress (correct and wrong answers)?')) {
+    if (window.confirm(t('quiz.confirmReset'))) {
       resetAll();
     }
-  }, [resetAll]);
+  }, [resetAll, t]);
 
   const pendingCount = useMemo(() => totalFiltered - answeredCount, [totalFiltered, answeredCount]);
 
   if (isBankLoading || isProgressLoading) {
-    return <InlineSpinner label="Loading questions from the database..." />;
+    return <InlineSpinner label={t('loading.questions')} />;
   }
 
   if (bankError) {
     return (
       <div className="rounded-2xl border border-ko-100 bg-surface p-6 text-sm text-ko-600" role="alert">
-        Could not load the question bank: {bankError}. Make sure the <code>questions</code> table has been
-        created and seeded (see the README).
+        {t('quiz.bankError', { error: bankError })}
       </div>
     );
   }
@@ -126,7 +127,7 @@ export function QuizPage() {
       <div className="min-w-0 flex-1">
         {syncError && (
           <div className="mb-4 rounded-xl bg-ko-100 px-4 py-3 text-sm text-ko-600" role="alert">
-            Could not sync progress with the server: {syncError}
+            {t('quiz.syncError', { error: syncError })}
           </div>
         )}
 
@@ -144,14 +145,18 @@ export function QuizPage() {
 
         <div className="mb-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-500">
           <span>
-            <b className="text-ink-800">{totalFiltered}</b> questions in this filter (of{' '}
-            <b className="text-ink-800">{totalBank}</b> total)
+            <b className="text-ink-800">{totalFiltered}</b>{' '}
+            {t('quiz.questionsInFilterOfTotal', { total: totalBank })}
           </span>
           <span>
-            <b className="text-ok-600">{correctCount}</b> correct
+            <b className="text-ok-600">{correctCount}</b> {t('quiz.correctSuffix')}
           </span>
-          <span className="text-ko-600">{answeredCount - correctCount} wrong</span>
-          <span>{pendingCount} pending</span>
+          <span className="text-ko-600">
+            {answeredCount - correctCount} {t('quiz.wrongSuffix')}
+          </span>
+          <span>
+            {pendingCount} {t('quiz.pendingSuffix')}
+          </span>
         </div>
 
         <QuestionList

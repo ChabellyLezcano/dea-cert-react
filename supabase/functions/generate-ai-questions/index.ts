@@ -8,15 +8,41 @@ const MAX_COUNT = 10;
 // Free tier via GroqCloud: no billing required, runs on Groq's LPU hardware.
 const MODEL = 'llama-3.3-70b-versatile';
 
+type Locale = 'en' | 'es';
+
+const LANGUAGE_NAMES: Record<Locale, string> = { en: 'English', es: 'Spanish' };
+
+const ERROR_MESSAGES: Record<Locale, { noNotes: string; badOutput: string; unexpected: string }> = {
+  en: {
+    noNotes: "There aren't any study notes for this domain yet, so generation can't be grounded reliably.",
+    badOutput: 'The model did not return valid questions. Try again.',
+    unexpected: 'Unexpected error generating questions.',
+  },
+  es: {
+    noNotes: 'No hay notas de estudio para este dominio todavía, no se puede generar con garantías.',
+    badOutput: 'El modelo no devolvió preguntas válidas. Inténtalo de nuevo.',
+    unexpected: 'Error inesperado al generar preguntas.',
+  },
+};
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function isLocale(value: unknown): value is Locale {
+  return value === 'en' || value === 'es';
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
+
+  // Resolved as early as possible (with a safe default) so every error
+  // response below -- not just the happy path -- can be returned in the
+  // language the user is actually looking at the app in.
+  let appLocale: Locale = 'en';
 
   try {
     if (!GROQ_API_KEY) {
@@ -28,7 +54,11 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Missing Authorization header.' }, 401);
     }
 
-    const { certId, domain, count } = await req.json();
+    const body = await req.json();
+    const { certId, domain, count } = body;
+    const questionLocale: Locale = isLocale(body.questionLocale) ? body.questionLocale : 'en';
+    const explanationLocale: Locale = isLocale(body.explanationLocale) ? body.explanationLocale : 'es';
+    appLocale = isLocale(body.appLocale) ? body.appLocale : questionLocale;
 
     if (typeof certId !== 'string' || typeof domain !== 'string') {
       return jsonResponse({ error: 'certId and domain are required.' }, 400);
@@ -58,16 +88,24 @@ Deno.serve(async (req) => {
       // actually demonstrates the code-heavy question style we want
       // the model to imitate -- a plain `.limit(3)` with no filter
       // frequently returned zero code examples by luck of ordering.
+      // Selects both language columns for each field and picks the
+      // requested one with a fallback below -- the *_es question/option
+      // columns won't be populated for every row until the translation
+      // script has run.
       supabase
         .from('questions')
-        .select('is_multi, question, options, correct_answers, explanation')
+        .select(
+          'is_multi, question_en, question_es, options_en, options_es, correct_answers, explanation_en, explanation_es',
+        )
         .eq('cert_id', certId)
         .eq('domain', domain)
-        .ilike('question', '%`%')
+        .or('question_en.ilike.%`%,question_es.ilike.%`%')
         .limit(3),
       supabase
         .from('questions')
-        .select('is_multi, question, options, correct_answers, explanation')
+        .select(
+          'is_multi, question_en, question_es, options_en, options_es, correct_answers, explanation_en, explanation_es',
+        )
         .eq('cert_id', certId)
         .eq('domain', domain)
         .limit(2),
@@ -78,10 +116,7 @@ Deno.serve(async (req) => {
     if (plainExamplesError) throw plainExamplesError;
 
     if (!topics || topics.length === 0) {
-      return jsonResponse(
-        { error: 'No hay notas de estudio para este dominio todavía, no se puede generar con garantías.' },
-        422,
-      );
+      return jsonResponse({ error: ERROR_MESSAGES[appLocale].noNotes }, 422);
     }
 
     // Bound the context sent to the model -- study notes can be long, and
@@ -98,21 +133,32 @@ Deno.serve(async (req) => {
     const seen = new Set<string>();
     const sampleQuestions = [...(codeExamples ?? []), ...(plainExamples ?? [])]
       .filter((row) => {
-        if (seen.has(row.question)) return false;
-        seen.add(row.question);
+        const key = row.question_en ?? row.question_es;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
         return true;
       })
       .slice(0, 5);
 
     const exampleQuestions = sampleQuestions.map((q) => ({
       m: q.is_multi ? 1 : 0,
-      q: q.question,
-      o: q.options,
+      q: (questionLocale === 'es' ? q.question_es : q.question_en) ?? q.question_en ?? q.question_es,
+      o: (questionLocale === 'es' ? q.options_es : q.options_en) ?? q.options_en ?? q.options_es,
       a: q.correct_answers,
-      x: q.explanation,
+      x:
+        (explanationLocale === 'es' ? q.explanation_es : q.explanation_en) ??
+        q.explanation_es ??
+        q.explanation_en,
     }));
 
-    const prompt = buildPrompt({ domain, count: safeCount, notes, exampleQuestions });
+    const prompt = buildPrompt({
+      domain,
+      count: safeCount,
+      notes,
+      exampleQuestions,
+      questionLocale,
+      explanationLocale,
+    });
 
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -146,7 +192,7 @@ Deno.serve(async (req) => {
 
     const parsed = parseGeneratedQuestions(rawText);
     if (parsed.length === 0) {
-      return jsonResponse({ error: 'El modelo no devolvió preguntas válidas. Inténtalo de nuevo.' }, 502);
+      return jsonResponse({ error: ERROR_MESSAGES[appLocale].badOutput }, 502);
     }
 
     const topicIds = topics.map((t) => t.id);
@@ -165,7 +211,7 @@ Deno.serve(async (req) => {
     return jsonResponse({ questions });
   } catch (error) {
     console.error('generate-ai-questions error:', error);
-    const message = error instanceof Error ? error.message : 'Unexpected error generating questions.';
+    const message = error instanceof Error ? error.message : ERROR_MESSAGES[appLocale].unexpected;
     return jsonResponse({ error: message }, 500);
   }
 });
@@ -175,22 +221,35 @@ function buildPrompt({
   count,
   notes,
   exampleQuestions,
+  questionLocale,
+  explanationLocale,
 }: {
   domain: string;
   count: number;
   notes: string;
   exampleQuestions: unknown[];
+  questionLocale: Locale;
+  explanationLocale: Locale;
 }) {
+  const questionLanguageName = LANGUAGE_NAMES[questionLocale];
+  const explanationLanguageName = LANGUAGE_NAMES[explanationLocale];
+  const languageInstruction =
+    questionLocale === explanationLocale
+      ? `Write the ENTIRE output -- question text, every answer option, and the explanation -- in ${questionLanguageName}, regardless of what language the study notes below are written in.`
+      : `Write the question text and every answer option ("q" and each entry of "o") in ${questionLanguageName}, and write the explanation ("x") in ${explanationLanguageName} -- these are deliberately different languages, matching the app's per-field language setting. This applies regardless of what language the study notes below are written in. Keep code/config snippets themselves in their original syntax either way (code is not translated).`;
+
   return `You write practice exam questions for a certification study app, in the exact JSON schema used by the app's real question bank. These sit alongside real official practice-exam questions, so they must be indistinguishable in style, depth, and difficulty from a real certification exam -- not textbook trivia or one-line definitions.
 
 STRICT GROUNDING RULE: only use facts present in the study notes below. If the notes don't support a fact, do not include it. Never invent option text, numbers, or behavior not stated in the notes.
+
+LANGUAGE: ${languageInstruction}
 
 Study notes for domain "${domain}":
 """
 ${notes}
 """
 
-Example questions already in the bank for this domain (match this style, tone, and difficulty -- do not repeat their content):
+Example questions already in the bank for this domain (match this style, tone, and difficulty -- do not repeat their content; language of these examples may not match the requested output language, ignore that and follow the LANGUAGE instruction above):
 ${JSON.stringify(exampleQuestions, null, 2)}
 
 REAL EXAM STYLE -- generate exactly ${count} NEW multiple-choice questions that follow this pattern:

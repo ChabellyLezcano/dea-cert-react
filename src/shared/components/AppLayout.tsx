@@ -2,10 +2,13 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useParams } from 'react-router-dom';
 import { useAuth } from '@/auth/useAuth';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
+import { LanguageSettings } from '@/shared/components/LanguageSettings';
 import { getCertification } from '@/certifications/registry';
+import { useLocale } from '@/shared/i18n/useLocale';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { certId } = useParams<{ certId: string }>();
+  const { t } = useLocale();
   const base = `/certifications/${certId}`;
   const acronym = getCertification(certId)?.acronym ?? '···';
 
@@ -17,12 +20,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <Link
               to="/certifications"
               className="flex items-center gap-1.5 text-sm font-semibold text-ink-500 transition hover:text-brand-600"
-              aria-label="Back to certifications"
+              aria-label={t('nav.backToCertifications')}
             >
               <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="hidden sm:inline">Certifications</span>
+              <span className="hidden sm:inline">{t('nav.backToCertifications')}</span>
             </Link>
             <span className="h-5 w-px bg-ink-200" />
             <Link to="/certifications" className="text-xl font-extrabold tracking-tight text-ink-900">
@@ -31,10 +34,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </div>
 
           <nav className="flex items-center gap-1 rounded-xl bg-ink-50 p-1" aria-label="Application sections">
-            <TabLink to={`${base}/quiz`}>Practice</TabLink>
-            <TabLink to={`${base}/mock-exam`}>Examen simulado</TabLink>
-            <TabLink to={`${base}/ai-generate`}>Generar IA</TabLink>
-            <TabLink to={`${base}/ai-favorites`}>Favoritas IA</TabLink>
+            <TabLink to={`${base}/quiz`}>{t('nav.practice')}</TabLink>
+            <TabLink to={`${base}/mock-exam`}>{t('nav.mockExam')}</TabLink>
+            <TabLink to={`${base}/ai-generate`}>{t('nav.aiGenerate')}</TabLink>
+            <TabLink to={`${base}/ai-favorites`}>{t('nav.aiFavorites')}</TabLink>
           </nav>
 
           <HeaderMenu />
@@ -62,11 +65,12 @@ function TabLink({ to, children }: { to: string; children: ReactNode }) {
   );
 }
 
-/** Collapses account-related controls (email, theme, sign out) behind a
- * single hamburger button, keeping the header from feeling crowded --
- * these are secondary actions, not primary navigation. */
+/** Collapses account-related controls (email, theme, language, sign out)
+ * behind a single hamburger button, keeping the header from feeling
+ * crowded -- these are secondary actions, not primary navigation. */
 function HeaderMenu() {
   const { user, signOut } = useAuth();
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -95,7 +99,7 @@ function HeaderMenu() {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        aria-label="Open menu"
+        aria-label={t('header.openMenu')}
         aria-haspopup="menu"
         aria-expanded={open}
         className="flex h-9 w-9 items-center justify-center rounded-lg border border-ink-200 text-ink-600 transition hover:border-brand-400 hover:text-brand-600"
@@ -108,23 +112,27 @@ function HeaderMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-20 mt-2 w-60 rounded-xl border border-ink-100 bg-surface p-2 shadow-lg"
+          className="absolute right-0 top-full z-20 mt-2 w-64 rounded-xl border border-ink-100 bg-surface p-2 shadow-lg"
         >
           <div className="border-b border-ink-100 px-3 pb-2">
             <span className="block truncate text-sm font-medium text-ink-800">{user?.email}</span>
           </div>
 
           <div className="flex items-center justify-between px-3 py-2.5">
-            <span className="text-sm text-ink-500">Theme</span>
+            <span className="text-sm text-ink-500">{t('header.theme')}</span>
             <ThemeToggle />
+          </div>
+
+          <div className="border-t border-ink-100">
+            <LanguageSettings />
           </div>
 
           <button
             type="button"
             onClick={() => signOut()}
-            className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-ko-600 transition hover:bg-ko-100"
+            className="w-full rounded-lg border-t border-ink-100 px-3 py-2.5 text-left text-sm font-semibold text-ko-600 transition hover:bg-ko-100"
           >
-            Sign out
+            {t('header.signOut')}
           </button>
         </div>
       )}
