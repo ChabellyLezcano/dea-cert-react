@@ -26,7 +26,8 @@ import process from 'process';
 const WRITE = process.argv.includes('--write');
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const MODEL = 'llama-3.3-70b-versatile';
-const BATCH_SIZE = 8;
+const BATCH_SIZE = 4; // smaller batches -- stay well under the 12k TPM free-tier limit
+const MAX_RETRIES = 6;
 
 interface TranslateTextJob {
   kind: 'text';
@@ -99,6 +100,25 @@ function chunk<T>(items: T[], size: number): T[][] {
   return chunks;
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Groq 429 bodies look like:
+//   "...Please try again in 37.47s. Need more tokens?..."
+// Extract that so we wait exactly as long as Groq asks, plus a small buffer.
+function extractRetryAfterMs(message: string): number | null {
+  const match = message.match(/try again in ([\d.]+)s/i);
+  if (!match) return null;
+  const seconds = Number.parseFloat(match[1]);
+  if (Number.isNaN(seconds)) return null;
+  return Math.ceil(seconds * 1000) + 500; // small buffer so we don't shave it too close
+}
+
+function isRateLimitError(err: unknown): err is Error {
+  return err instanceof Error && err.message.includes('Groq API error (429)');
+}
+
 const TRANSLATION_RULES = `Translate the text field(s) below from {source} to {target}, for a technical certification-exam study app.
 
 CRITICAL RULES:
@@ -127,6 +147,28 @@ async function callGroq(prompt: string): Promise<string> {
   return data.choices?.[0]?.message?.content ?? '';
 }
 
+// Wraps callGroq with retry-with-backoff specifically for 429s. Any other
+// error (bad JSON, network blip) is rethrown immediately -- only rate
+// limits get retried, since those are the only ones we know will resolve
+// themselves after waiting.
+async function callGroqWithRetry(prompt: string): Promise<string> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    try {
+      return await callGroq(prompt);
+    } catch (err) {
+      lastError = err;
+      if (!isRateLimitError(err)) throw err;
+      const waitMs = extractRetryAfterMs((err as Error).message) ?? 5000;
+      console.log(
+        `  rate limited, waiting ${(waitMs / 1000).toFixed(1)}s (attempt ${attempt + 1}/${MAX_RETRIES})...`,
+      );
+      await sleep(waitMs);
+    }
+  }
+  throw lastError;
+}
+
 async function translateTextBatch(
   texts: string[],
   sourceLanguage: string,
@@ -140,7 +182,7 @@ ${JSON.stringify(texts)}
 
 Respond with a JSON object: {"translations": [${texts.map(() => '"..."').join(', ')}]} -- exactly ${texts.length} strings, same order as the input.`;
 
-  const raw = await callGroq(prompt);
+  const raw = await callGroqWithRetry(prompt);
   const parsed = JSON.parse(raw.trim());
   const translations = parsed.translations;
   if (!Array.isArray(translations) || translations.length !== texts.length) {
@@ -167,7 +209,7 @@ ${JSON.stringify(items, null, 2)}
 
 Respond with a JSON object: {"translations": [{"q": "...", "o": ["...", "..."]}, ...]} -- exactly ${items.length} objects, same order and same "o" array length as the input.`;
 
-  const raw = await callGroq(prompt);
+  const raw = await callGroqWithRetry(prompt);
   const parsed = JSON.parse(raw.trim());
   const translations = parsed.translations;
   if (!Array.isArray(translations) || translations.length !== items.length) {
@@ -181,6 +223,23 @@ Respond with a JSON object: {"translations": [{"q": "...", "o": ["...", "..."]},
     }
   }
   return translations;
+}
+
+// Writes only the target column(s) for a single row. Using .update().eq()
+// per row (instead of a bulk .upsert()) means Postgres only ever sees the
+// columns we actually pass -- no NOT NULL violations from an incomplete
+// candidate row, since there's no INSERT path involved at all.
+async function updateRow(
+  supabase: ReturnType<typeof createClient<Database>>,
+  table: 'questions' | 'favorite_ai_questions',
+  id: string,
+  patch: Record<string, unknown>,
+): Promise<void> {
+  const { error } = await supabase
+    .from(table)
+    .update(patch as never)
+    .eq('id', id);
+  if (error) throw error;
 }
 
 async function runTextJob(supabase: ReturnType<typeof createClient<Database>>, job: TranslateTextJob) {
@@ -198,11 +257,9 @@ async function runTextJob(supabase: ReturnType<typeof createClient<Database>>, j
     const texts = batch.map((r) => String(r[job.sourceColumn]));
     try {
       const translations = await translateTextBatch(texts, job.sourceLanguage, job.targetLanguage);
-      const updates = batch.map((row, i) => ({ id: row.id, [job.targetColumn]: translations[i] }));
-      const { error: upsertError } = await supabase
-        .from(job.table)
-        .upsert(updates as never[], { onConflict: 'id' });
-      if (upsertError) throw upsertError;
+      for (let i = 0; i < batch.length; i += 1) {
+        await updateRow(supabase, job.table, batch[i].id, { [job.targetColumn]: translations[i] });
+      }
       console.log(`  ...translated ${batch.length} row(s)`);
     } catch (err) {
       console.error(`  batch failed, skipping (${batch.length} rows):`, err);
@@ -234,15 +291,12 @@ async function runQuestionJob(
     }));
     try {
       const translations = await translateQuestionBatch(items, job.sourceLanguage, job.targetLanguage);
-      const updates = batch.map((row, i) => ({
-        id: row.id,
-        [job.targetQuestionColumn]: translations[i].q,
-        [job.targetOptionsColumn]: translations[i].o,
-      }));
-      const { error: upsertError } = await supabase
-        .from(job.table)
-        .upsert(updates as never[], { onConflict: 'id' });
-      if (upsertError) throw upsertError;
+      for (let i = 0; i < batch.length; i += 1) {
+        await updateRow(supabase, job.table, batch[i].id, {
+          [job.targetQuestionColumn]: translations[i].q,
+          [job.targetOptionsColumn]: translations[i].o,
+        });
+      }
       console.log(`  ...translated ${batch.length} row(s)`);
     } catch (err) {
       console.error(`  batch failed, skipping (${batch.length} rows):`, err);
