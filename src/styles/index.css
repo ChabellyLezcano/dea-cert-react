@@ -5,7 +5,6 @@
   --font-sans: 'Poppins', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  /* Brand: deep violet, used for text/borders/tints (re-themed for dark mode) */
   --color-brand-50: #f4f1ff;
   --color-brand-100: #e6ddff;
   --color-brand-200: #cdb8ff;
@@ -17,18 +16,13 @@
   --color-brand-800: #341388;
   --color-brand-900: #220c5c;
 
-  /* Action: solid fill + white text (buttons, active chips). Self-contained
-   * contrast, so it stays constant across themes and is re-themed
-   * separately from the brand-* text/tint scale above. */
   --color-action: #5b1fe0;
   --color-action-hover: #4718b3;
 
-  /* Accent: warm amber, used sparingly for highlights and CTAs */
   --color-accent-400: #ffb648;
   --color-accent-500: #ff9d1f;
   --color-accent-600: #e8820a;
 
-  /* Semantic feedback colors */
   --color-ok-100: #d9f7e6;
   --color-ok-500: #159a5b;
   --color-ok-600: #0f7a48;
@@ -36,7 +30,6 @@
   --color-ko-500: #e0453a;
   --color-ko-600: #b8362d;
 
-  /* Neutral ink scale + warm paper canvas */
   --color-canvas: #faf8f5;
   --color-surface: #ffffff;
   --color-ink-50: #f4f3f7;
@@ -51,19 +44,13 @@
   --color-ink-900: #171526;
 }
 
-/* Dark theme: overrides the same CSS custom properties declared above, so
- * every utility class (bg-canvas, text-ink-800, bg-brand-50...) picks up
- * the new values automatically without needing dark: variants everywhere.
- * Applied by toggling the `dark` class on <html> (see ThemeProvider). */
 .dark {
   color-scheme: dark;
 
   --color-canvas: #131120;
   --color-surface: #1c1830;
 
-  /* Chip/badge tint: dark violet background instead of pale lavender */
   --color-brand-50: #241c47;
-  /* Text/border tones: lightened so they read on dark backgrounds */
   --color-brand-600: #b3a1fa;
   --color-brand-700: #cbbdfd;
 
@@ -72,8 +59,6 @@
   --color-ko-100: #3a1512;
   --color-ko-600: #f87171;
 
-  /* Neutral scale inverted: ink-50 (light bg tint) becomes the darkest
-   * slot, ink-900 (near-black text) becomes the lightest slot. */
   --color-ink-50: #1a1730;
   --color-ink-100: #241f3d;
   --color-ink-200: #332c52;
@@ -91,6 +76,17 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+  }
+
+  /* Desktop only (matches the project's existing lg: 1024px breakpoint,
+   * e.g. QuizPage's lg:flex-row layout split) -- scales every rem-based
+   * Tailwind text size app-wide by 1.125x on wide screens (e.g. text-sm
+   * goes from 14px to 15.75px, text-base from 16px to 18px), while mobile
+   * and tablet keep the default 100% (16px) base untouched. */
+  @media (min-width: 1024px) {
+    html {
+      font-size: 112.5%;
+    }
   }
 
   body {

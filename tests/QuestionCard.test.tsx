@@ -123,6 +123,103 @@ describe('QuestionCard', () => {
     expect(screen.getByText('Answer revealed')).toBeInTheDocument();
   });
 
+  describe('code block language detection', () => {
+    function questionWithCode(code: string): Question {
+      return {
+        ...question,
+        id: 'E1Q99',
+        q: `Given the following snippet:\n\`\`\`\n${code}\n\`\`\`\nWhat does it do?`,
+      };
+    }
+
+    it('detects a CLI command as bash, not sql', () => {
+      render(
+        <QuestionCard
+          question={questionWithCode('databricks bundle deploy --target prod --non-interactive')}
+          entry={undefined}
+          searchTerm=""
+          onGrade={vi.fn()}
+          onReveal={vi.fn()}
+          onRetry={vi.fn()}
+        />,
+      );
+      const codeEl = document.querySelector('code.hljs');
+      expect(codeEl).toHaveClass('language-bash');
+    });
+
+    it('detects a YAML bundle target block as yaml, not sql', () => {
+      render(
+        <QuestionCard
+          question={questionWithCode(
+            'targets:\n  dev:\n    mode: development\n    workspace:\n      host: https://adb-1234.net',
+          )}
+          entry={undefined}
+          searchTerm=""
+          onGrade={vi.fn()}
+          onReveal={vi.fn()}
+          onRetry={vi.fn()}
+        />,
+      );
+      const codeEl = document.querySelector('code.hljs');
+      expect(codeEl).toHaveClass('language-yaml');
+    });
+
+    it('detects a PySpark snippet as python', () => {
+      render(
+        <QuestionCard
+          question={questionWithCode(
+            'import dlt\n\n@dlt.table\ndef bronze_events():\n    return spark.readStream.format("cloudFiles")',
+          )}
+          entry={undefined}
+          searchTerm=""
+          onGrade={vi.fn()}
+          onReveal={vi.fn()}
+          onRetry={vi.fn()}
+        />,
+      );
+      const codeEl = document.querySelector('code.hljs');
+      expect(codeEl).toHaveClass('language-python');
+    });
+
+    it('detects a SQL DDL snippet as sql', () => {
+      render(
+        <QuestionCard
+          question={questionWithCode(
+            'CREATE STREAMING TABLE sales_silver\nAS SELECT store_id, total + tax AS total_after_tax\n   FROM sales_bronze',
+          )}
+          entry={undefined}
+          searchTerm=""
+          onGrade={vi.fn()}
+          onReveal={vi.fn()}
+          onRetry={vi.fn()}
+        />,
+      );
+      const codeEl = document.querySelector('code.hljs');
+      expect(codeEl).toHaveClass('language-sql');
+    });
+
+    it('wraps long lines instead of allowing horizontal scroll, on any screen size', () => {
+      render(
+        <QuestionCard
+          question={questionWithCode(
+            'GRANT SELECT ON SCHEMA enterprise.reporting TO finance_analyst_role_with_a_very_long_name_that_would_overflow;',
+          )}
+          entry={undefined}
+          searchTerm=""
+          onGrade={vi.fn()}
+          onReveal={vi.fn()}
+          onRetry={vi.fn()}
+        />,
+      );
+      const codeEl = document.querySelector('code.hljs');
+      const preEl = codeEl?.closest('pre');
+      expect(codeEl).toHaveClass('whitespace-pre-wrap');
+      expect(codeEl).toHaveClass('break-words');
+      expect(codeEl?.className).not.toMatch(/\bw-max\b/);
+      expect(preEl?.className).not.toMatch(/overflow-x-auto/);
+    });
+  });
+
   describe('multi-answer questions', () => {
     const multiQuestion: Question = {
       n: 2,

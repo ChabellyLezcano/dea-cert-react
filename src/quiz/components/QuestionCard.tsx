@@ -22,6 +22,71 @@ hljs.registerLanguage('yaml', yaml);
 hljs.registerLanguage('bash', bash);
 const CODE_LANGUAGE_SUBSET = ['sql', 'python', 'yaml', 'bash'];
 
+// hljs.highlightAuto guesses purely from grammar-token overlap, which is
+// unreliable on short snippets: single-line CLI commands like
+// "databricks bundle deploy --target prod" score higher against SQL's
+// grammar than bash's (no real bash-specific tokens to match), so they'd
+// render with wrong SQL coloring. These heuristics catch the exam bank's
+// actual patterns (verified against real questions in exams/*.ts) before
+// falling back to highlightAuto, and are checked in a fixed order because
+// a snippet can superficially match more than one (e.g. a YAML value
+// containing the word "from").
+const CLI_BINARIES = new Set([
+  'databricks',
+  'aws',
+  'az',
+  'gcloud',
+  'git',
+  'pip',
+  'pip3',
+  'curl',
+  'docker',
+  'kubectl',
+  'spark-submit',
+  'npm',
+  'npx',
+  'conda',
+  'terraform',
+  'ssh',
+  'scp',
+  'wget',
+]);
+const YAML_LINE = /^\s*(-\s+)?[\w.${}-]+:(\s|$)/;
+const PYTHON_HINTS = /^\s*(import |from \S+ import |def |@\w|spark\.|dbutils\.)/m;
+const PYSPARK_CHAIN = /\.option\(|\.readStream|\.writeStream/;
+const SQL_HINTS =
+  /\b(SELECT|CREATE\s+(OR\s+REPLACE\s+)?(TABLE|STREAMING TABLE|VIEW)|ALTER\s+TABLE|GRANT|REVOKE|INSERT\s+INTO|COPY\s+INTO|MERGE\s+INTO|FROM\s+\w|WHERE\s)\b/i;
+
+/** Returns a forced language when a snippet matches a known, unambiguous
+ * pattern from the exam bank; null lets the caller fall back to
+ * highlightAuto (and from there, to plain unstyled text if that's also
+ * low-confidence -- better to show correct-looking plain code than
+ * confidently wrong colors). */
+function detectLanguage(content: string): string | null {
+  const trimmed = content.trim();
+  const lines = trimmed.split('\n').filter((l) => l.trim().length > 0);
+  if (!lines.length) return null;
+
+  const firstWord = lines[0]
+    .trim()
+    .split(/\s+/)[0]
+    .replace(/^[$#>]\s*/, '');
+  if (CLI_BINARIES.has(firstWord)) return 'bash';
+
+  const yamlLikeCount = lines.filter((l) => YAML_LINE.test(l)).length;
+  if (yamlLikeCount / lines.length >= 0.6 && !trimmed.includes(';')) return 'yaml';
+
+  if (PYTHON_HINTS.test(trimmed) || PYSPARK_CHAIN.test(trimmed)) return 'python';
+
+  if (SQL_HINTS.test(trimmed)) return 'sql';
+
+  return null;
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
 interface QuestionCardProps {
@@ -91,7 +156,7 @@ export function QuestionCard({
 
   return (
     <article
-      className={`rounded-2xl border bg-surface p-5 shadow-sm transition ${cardTone || 'border-ink-100'}`}
+      className={`min-w-0 rounded-2xl border bg-surface p-5 shadow-sm transition ${cardTone || 'border-ink-100'}`}
     >
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="max-w-full break-words rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
@@ -110,7 +175,7 @@ export function QuestionCard({
         )}
       </div>
 
-      <div className="whitespace-pre-line break-words text-[15px] leading-relaxed text-ink-800">
+      <div className="min-w-0 whitespace-pre-line break-words text-[15px] leading-relaxed text-ink-800">
         <TextWithCode text={question.q} searchTerm={searchTerm} />
       </div>
 
@@ -161,7 +226,7 @@ export function QuestionCard({
           <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink-400">
             {t('question.explanationLabel')}
           </span>
-          <div className="break-words">
+          <div className="min-w-0 break-words">
             <TextWithCode text={question.x} searchTerm={searchTerm} />
           </div>
         </div>
@@ -330,20 +395,52 @@ function TextWithInlineCode({ text, searchTerm }: { text: string; searchTerm: st
  * the closest highlight.js theme to VS Code's Dark+ palette. Falls back
  * to plain escaped text if highlighting throws for any reason, so a
  * malformed snippet never breaks the whole question card. */
-function CodeBlock({ content }: { content: string }) {
-  const html = useMemo(() => {
-    try {
-      return hljs.highlightAuto(content, CODE_LANGUAGE_SUBSET).value;
-    } catch {
-      return content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+interface HighlightResult {
+  html: string;
+  /** Resolved language, or null when confidence was too low and we fell
+   * back to plain escaped text. Surfaced as a `language-xxx` class on the
+   * rendered <code> element (standard convention, and lets tests assert
+   * on detection without parsing hljs's internal span markup). */
+  language: string | null;
+}
+
+/** Highlights a code snippet: tries the pattern heuristics first, then
+ * highlightAuto above a relevance floor, then falls back to plain escaped
+ * text. Kept outside the component (as a plain, non-hook function) so
+ * useMemo's callback body stays trivial for the React Compiler. */
+function highlightContent(content: string): HighlightResult {
+  try {
+    const forced = detectLanguage(content);
+    if (forced) {
+      return { html: hljs.highlight(content, { language: forced }).value, language: forced };
     }
-  }, [content]);
+    // No confident heuristic match: let highlightAuto guess, but only
+    // trust it above a relevance floor. Below that, a guess is more
+    // likely wrong than right on short snippets, so plain (but still
+    // correctly boxed/escaped) text beats confidently-wrong coloring.
+    const auto = hljs.highlightAuto(content, CODE_LANGUAGE_SUBSET);
+    if (!auto.language || auto.relevance < 3) {
+      return { html: escapeHtml(content), language: null };
+    }
+    return { html: auto.value, language: auto.language };
+  } catch {
+    return { html: escapeHtml(content), language: null };
+  }
+}
+
+function CodeBlock({ content }: { content: string }) {
+  const { html, language } = useMemo(() => highlightContent(content), [content]);
 
   return (
-    <pre className="my-2 overflow-x-auto rounded-lg text-xs leading-relaxed">
+    <pre className="my-2 overflow-x-hidden rounded-lg text-[13px] leading-relaxed sm:text-xs">
+      {/* whitespace-pre-wrap keeps the source's own line breaks/indentation
+       * (like plain "pre") while still wrapping at the container edge --
+       * break-words forces a mid-token break for the rare line with no
+       * natural wrap point (a long unbroken string/URL), so nothing ever
+       * needs horizontal scroll to read, on any screen size. */}
       {/* hljs escapes the source itself; this only ever renders its own highlighted-span markup, never raw user HTML */}
       <code
-        className="hljs block rounded-lg px-3 py-2.5 font-mono"
+        className={`hljs block whitespace-pre-wrap break-words rounded-lg px-3 py-2.5 font-mono ${language ? `language-${language}` : ''}`}
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </pre>

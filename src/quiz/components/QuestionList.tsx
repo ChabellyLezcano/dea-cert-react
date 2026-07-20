@@ -27,7 +27,7 @@ export function QuestionList({
   }
 
   return (
-    <div className="flex flex-col gap-4 animate-stagger">
+    <div className="flex min-w-0 flex-col gap-4 animate-stagger">
       {questions.map((question) => (
         <QuestionCard
           key={question.id}
