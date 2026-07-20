@@ -6,11 +6,13 @@ import { buildGradedEntry, buildRevealedEntry } from '@/quiz/hooks/useProgress';
 import { useFavoriteAiQuestions } from '@/quiz/hooks/useFavoriteAiQuestions';
 import { useAuth } from '@/auth/useAuth';
 import { toDisplayQuestion, AiBadge } from '@/quiz/ai/aiDisplay';
+import { useLocale } from '@/shared/i18n/useLocale';
 import type { ProgressMap, Question } from '@/quiz/quiz.types';
 
 export function AiFavoritesPage() {
   const { certId } = useParams<{ certId: string }>();
   const { user } = useAuth();
+  const { t } = useLocale();
   const { favorites, isLoading, remove } = useFavoriteAiQuestions(certId, user?.id ?? null);
 
   const [draftAnswers, setDraftAnswers] = useState<ProgressMap>({});
@@ -34,10 +36,10 @@ export function AiFavoritesPage() {
   return (
     <div className="rounded-2xl border border-ink-100 bg-surface p-4 shadow-sm">
       <div className="flex flex-col gap-4">
-        {isLoading && <p className="text-sm text-ink-500">Cargando favoritas...</p>}
+        {isLoading && <p className="text-sm text-ink-500">{t('ai.favorites.loading')}</p>}
         {!isLoading && favorites.length === 0 && (
           <div className="rounded-2xl border border-dashed border-ink-200 bg-surface p-10 text-center text-sm text-ink-500">
-            Todavía no has guardado ninguna pregunta generada por IA.
+            {t('ai.favorites.empty')}
           </div>
         )}
         {favorites.map((aiQ) => (
@@ -54,10 +56,10 @@ export function AiFavoritesPage() {
               <Button
                 variant="danger"
                 onClick={() => {
-                  if (window.confirm('¿Quitar esta pregunta de tus favoritas?')) remove(aiQ.id);
+                  if (window.confirm(t('ai.favorites.confirmRemove'))) remove(aiQ.id);
                 }}
               >
-                Quitar
+                {t('ai.favorites.remove')}
               </Button>
             }
           />

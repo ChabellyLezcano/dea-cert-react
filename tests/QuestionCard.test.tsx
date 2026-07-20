@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderWithProviders as render } from './testUtils';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { QuestionCard } from '../src/quiz/components/QuestionCard';
@@ -14,6 +15,9 @@ const question: Question = {
   x: 'Auto Loader is designed for incremental, scalable file ingestion.',
   exam: 1,
   id: 'E1Q1',
+  qByLocale: { en: 'What loads files incrementally from cloud storage?' },
+  oByLocale: { en: ['Auto Loader', 'COPY INTO'] },
+  xByLocale: { en: 'Auto Loader is designed for incremental, scalable file ingestion.' },
 };
 
 describe('QuestionCard', () => {
@@ -130,6 +134,9 @@ describe('QuestionCard', () => {
       x: 'ACID transactions and time travel are core Delta Lake features.',
       exam: 1,
       id: 'E1Q2',
+      qByLocale: { en: 'Which of the following are Delta Lake features?' },
+      oByLocale: { en: ['ACID transactions', 'Time travel', 'Schema enforcement'] },
+      xByLocale: { en: 'ACID transactions and time travel are core Delta Lake features.' },
     };
 
     it('accumulates selections and only grades once Check selection is clicked', async () => {

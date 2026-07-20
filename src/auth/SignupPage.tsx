@@ -5,9 +5,11 @@ import { useAuth } from './useAuth';
 import { signupSchema } from './auth.schemas';
 import { TextField } from '../shared/components/TextField';
 import { Button } from '../shared/components/Button';
+import { useLocale } from '../shared/i18n/useLocale';
 
 export function SignupPage() {
   const { signUp, user } = useAuth();
+  const { t } = useLocale();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,23 +46,24 @@ export function SignupPage() {
 
   if (confirmationSent) {
     return (
-      <AuthLayout title="Check your inbox" subtitle="We sent you a confirmation link.">
+      <AuthLayout title={t('auth.signup.checkInboxTitle')} subtitle={t('auth.signup.checkInboxSubtitle')}>
         <p className="text-sm text-ink-600">
-          Click the link we sent to <strong>{email}</strong> to activate your account, then come back and sign
-          in.
+          {t('auth.signup.confirmationBodyPrefix')}
+          <strong>{email}</strong>
+          {t('auth.signup.confirmationBodySuffix')}
         </p>
         <Link to="/login" className="mt-6 inline-block font-semibold text-brand-600 hover:underline">
-          Back to sign in
+          {t('auth.signup.backToSignIn')}
         </Link>
       </AuthLayout>
     );
   }
 
   return (
-    <AuthLayout title="Create your account" subtitle="Track your progress across all 9 practice exams.">
+    <AuthLayout title={t('auth.signup.title')} subtitle={t('auth.signup.subtitle')}>
       <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
         <TextField
-          label="Email"
+          label={t('auth.emailLabel')}
           name="email"
           type="email"
           autoComplete="email"
@@ -69,7 +72,7 @@ export function SignupPage() {
           error={fieldErrors.email}
         />
         <TextField
-          label="Password"
+          label={t('auth.passwordLabel')}
           name="password"
           type="password"
           autoComplete="new-password"
@@ -78,7 +81,7 @@ export function SignupPage() {
           error={fieldErrors.password}
         />
         <TextField
-          label="Confirm password"
+          label={t('auth.signup.confirmPasswordLabel')}
           name="confirmPassword"
           type="password"
           autoComplete="new-password"
@@ -86,23 +89,20 @@ export function SignupPage() {
           onChange={(event) => setConfirmPassword(event.target.value)}
           error={fieldErrors.confirmPassword}
         />
-        <p className="text-xs text-ink-400">
-          8-16 characters, with at least one uppercase letter, one lowercase letter, one number and one
-          special character.
-        </p>
+        <p className="text-xs text-ink-400">{t('auth.signup.passwordHint')}</p>
         {formError && (
           <p role="alert" className="rounded-lg bg-ko-100 px-3 py-2 text-sm text-ko-600">
             {formError}
           </p>
         )}
         <Button type="submit" isLoading={isSubmitting} className="mt-2 w-full">
-          Create account
+          {t('auth.signup.submit')}
         </Button>
       </form>
       <p className="mt-6 text-center text-sm text-ink-500">
-        Already have an account?{' '}
+        {t('auth.signup.alreadyHaveAccount')}{' '}
         <Link to="/login" className="font-semibold text-brand-600 hover:underline">
-          Sign in
+          {t('auth.signup.signInLink')}
         </Link>
       </p>
     </AuthLayout>

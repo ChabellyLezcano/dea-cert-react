@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "target": "es2023",
-    "lib": ["ES2023"],
+    "lib": ["ES2023", "DOM"],
     "module": "esnext",
     "moduleResolution": "bundler",
-    "types": ["node"],
+    "types": ["node", "vite/client"],
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -13,6 +13,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["scripts/**/*.ts", "src/**/*.ts"],
-  "exclude": ["src/**/*.tsx", "node_modules"]
+  "include": ["scripts/**/*.ts"],
+  "exclude": ["node_modules"]
 }

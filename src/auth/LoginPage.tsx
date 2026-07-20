@@ -5,9 +5,11 @@ import { useAuth } from './useAuth';
 import { loginSchema } from './auth.schemas';
 import { TextField } from '../shared/components/TextField';
 import { Button } from '../shared/components/Button';
+import { useLocale } from '../shared/i18n/useLocale';
 
 export function LoginPage() {
   const { signIn, user } = useAuth();
+  const { t } = useLocale();
   const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,10 +43,10 @@ export function LoginPage() {
   }
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Sign in to keep tracking your certification progress.">
+    <AuthLayout title={t('auth.login.title')} subtitle={t('auth.login.subtitle')}>
       <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
         <TextField
-          label="Email"
+          label={t('auth.emailLabel')}
           name="email"
           type="email"
           autoComplete="email"
@@ -53,7 +55,7 @@ export function LoginPage() {
           error={fieldErrors.email}
         />
         <TextField
-          label="Password"
+          label={t('auth.passwordLabel')}
           name="password"
           type="password"
           autoComplete="current-password"
@@ -67,13 +69,13 @@ export function LoginPage() {
           </p>
         )}
         <Button type="submit" isLoading={isSubmitting} className="mt-2 w-full">
-          Sign in
+          {t('auth.login.submit')}
         </Button>
       </form>
       <p className="mt-6 text-center text-sm text-ink-500">
-        No account yet?{' '}
+        {t('auth.login.noAccount')}{' '}
         <Link to="/signup" className="font-semibold text-brand-600 hover:underline">
-          Create one
+          {t('auth.login.createOne')}
         </Link>
       </p>
     </AuthLayout>

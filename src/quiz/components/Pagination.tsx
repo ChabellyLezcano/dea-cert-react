@@ -1,4 +1,5 @@
 import { Button } from '../../shared/components/Button';
+import { useLocale } from '../../shared/i18n/useLocale';
 
 interface PaginationProps {
   page: number;
@@ -7,14 +8,18 @@ interface PaginationProps {
 }
 
 export function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
+  const { t } = useLocale();
   if (totalPages <= 1) return null;
 
   const pageNumbers = buildPageWindow(page, totalPages);
 
   return (
-    <nav className="flex flex-wrap items-center justify-center gap-2 py-2" aria-label="Question pages">
+    <nav
+      className="flex flex-wrap items-center justify-center gap-2 py-2"
+      aria-label={t('pagination.ariaLabel')}
+    >
       <Button variant="ghost" onClick={() => onPageChange(page - 1)} disabled={page === 1}>
-        ‹ Prev
+        ‹ {t('pagination.prev')}
       </Button>
 
       {pageNumbers.map((entry, index) =>
@@ -38,7 +43,7 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
       )}
 
       <Button variant="ghost" onClick={() => onPageChange(page + 1)} disabled={page === totalPages}>
-        Next ›
+        {t('pagination.next')} ›
       </Button>
     </nav>
   );

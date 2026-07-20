@@ -3,12 +3,15 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ThemeProvider } from '../src/shared/theme/ThemeProvider';
 import { ThemeToggle } from '../src/shared/components/ThemeToggle';
+import { AllProviders } from './testUtils';
 
 function renderToggle() {
   return render(
-    <ThemeProvider>
-      <ThemeToggle />
-    </ThemeProvider>,
+    <AllProviders>
+      <ThemeProvider>
+        <ThemeToggle />
+      </ThemeProvider>
+    </AllProviders>,
   );
 }
 

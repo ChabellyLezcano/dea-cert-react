@@ -9,11 +9,13 @@ import { PAGE_SIZE } from '@/quiz/hooks/useQuestionFilter';
 import { generateMockExam, type MockExamOptions, type MockExamResult } from '@/quiz/utils/mockExam';
 import { useAuth } from '@/auth/useAuth';
 import { InlineSpinner } from '@/shared/components/InlineSpinner';
+import { useLocale } from '@/shared/i18n/useLocale';
 import type { ProgressMap, Question } from '@/quiz/quiz.types';
 
 export function MockExamPage() {
   const { certId } = useParams<{ certId: string }>();
   const { user } = useAuth();
+  const { t } = useLocale();
   const {
     progress,
     isLoading: isProgressLoading,
@@ -139,14 +141,13 @@ export function MockExamPage() {
   }, []);
 
   if (isBankLoading || isProgressLoading) {
-    return <InlineSpinner label="Loading questions from the database..." />;
+    return <InlineSpinner label={t('loading.questions')} />;
   }
 
   if (bankError) {
     return (
       <div className="rounded-2xl border border-ko-100 bg-surface p-6 text-sm text-ko-600" role="alert">
-        Could not load the question bank: {bankError}. Make sure the <code>questions</code> table has been
-        created and seeded (see the README).
+        {t('quiz.bankError', { error: bankError })}
       </div>
     );
   }
@@ -155,7 +156,7 @@ export function MockExamPage() {
     <div>
       {syncError && (
         <div className="mb-4 rounded-xl bg-ko-100 px-4 py-3 text-sm text-ko-600" role="alert">
-          Could not sync progress with the server: {syncError}
+          {t('quiz.syncError', { error: syncError })}
         </div>
       )}
 
