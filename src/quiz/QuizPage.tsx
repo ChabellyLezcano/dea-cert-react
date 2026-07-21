@@ -116,6 +116,7 @@ export function QuizPage() {
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
       <Sidebar
+        certId={certId}
         bank={bank}
         progress={progress}
         activeDomain={filters.domain}
