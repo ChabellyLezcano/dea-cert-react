@@ -96,7 +96,6 @@ function DomainButton({
   // Accuracy = correct out of ANSWERED (not out of total) — "how well am I
   // doing on what I've attempted so far", independent of how much is left.
   const accuracyPct = stats.answered > 0 ? Math.round((stats.correct / stats.answered) * 100) : null;
-  const circleTone = correctPct >= 80 ? 'text-ok-500' : correctPct >= 50 ? 'text-accent-500' : 'text-ko-500';
 
   return (
     <button
