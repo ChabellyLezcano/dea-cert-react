@@ -45,7 +45,7 @@ export function useQuestionBank(certId?: string): UseQuestionBankResult {
   useEffect(() => {
     let isMounted = true;
 
-    let query = supabase.from('questions').select('*');
+    let query = supabase.from('questions').select('*').range(0, 1199);
     if (certId) query = query.eq('cert_id', certId);
 
     query

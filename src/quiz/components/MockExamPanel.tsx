@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { CheckCircle2, Flag, Target, XCircle } from 'lucide-react';
-import { DOMAIN_MAP } from '../data/domains';
+import { DOMAINS, DOMAIN_MAP } from '../data/domains';
 import { Button } from '../../shared/components/Button';
 import { CircularProgress } from '../../shared/components/CircularProgress';
 import { useLocale } from '../../shared/i18n/useLocale';
@@ -13,6 +13,8 @@ export interface MockExamSessionStats {
 }
 
 interface MockExamPanelProps {
+  /** Which certification's domains to filter against */
+  certId?: string;
   /** null when no mock exam is currently active. */
   active: MockExamResult | null;
   /** Live tally of answered/correct questions: this session's draft-only
@@ -32,6 +34,7 @@ interface MockExamPanelProps {
 const QUESTION_COUNT_PRESETS = [15, 25, 45, 60, 90];
 
 export function MockExamPanel({
+  certId,
   active,
   sessionStats,
   finished,
@@ -43,6 +46,9 @@ export function MockExamPanel({
   const [totalQuestions, setTotalQuestions] = useState(45);
   const [source, setSource] = useState<MockExamSource>('both');
   const { t } = useLocale();
+
+  // Filtramos los dominios asegurando que pertenecen únicamente al certId actual
+  const certDomains = useMemo(() => DOMAINS.filter((d) => d.certId === certId), [certId]);
 
   const sourceOptions: { value: MockExamSource; label: string }[] = [
     { value: 'unanswered', label: t('mockExam.source.unanswered') },
@@ -113,18 +119,23 @@ export function MockExamPanel({
           </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {active.breakdown.map((entry) => (
-            <span
-              key={entry.domain}
-              className="rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-ink-600"
-              title={DOMAIN_MAP[entry.domain].name}
-            >
-              {entry.domain}: {entry.picked}
-              {entry.picked !== entry.target && (
-                <span className="text-ink-400"> {t('mockExam.targetSuffix', { n: entry.target })}</span>
-              )}
-            </span>
-          ))}
+          {active.breakdown
+            .filter((entry) => certDomains.some((d) => d.id === entry.domain)) // <--- Filtramos aquí
+            .map((entry) => {
+              const domainInfo = DOMAIN_MAP[entry.domain];
+              return (
+                <span
+                  key={entry.domain}
+                  className="rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-ink-600"
+                  title={domainInfo?.name ?? entry.domain}
+                >
+                  {entry.domain}: {entry.picked}
+                  {entry.picked !== entry.target && (
+                    <span className="text-ink-400"> {t('mockExam.targetSuffix', { n: entry.target })}</span>
+                  )}
+                </span>
+              );
+            })}
         </div>
       </div>
     );

@@ -161,6 +161,7 @@ export function MockExamPage() {
       )}
 
       <MockExamPanel
+        certId={certId}
         active={mockExam}
         sessionStats={mockSessionStats}
         finished={mockExamFinished}
