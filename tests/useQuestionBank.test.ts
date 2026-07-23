@@ -13,12 +13,14 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
 }));
 
 function mockQuestionsResponse(result: { data?: unknown[]; error?: { message: string } | null }) {
-  // Chain shape: .from('questions').select('*').order('exam', {...}).order('n', {...}).then(cb)
+  // Chain shape: .from('questions').select('*').order('exam', {...}).order('n', {...}).range(from, to).then(cb)
   const chain = {
     select: selectMock.mockReturnValue({
       order: orderMock.mockReturnValue({
         order: vi.fn().mockReturnValue({
-          then: (resolve: (r: typeof result) => void) => Promise.resolve().then(() => resolve(result)),
+          range: vi.fn().mockReturnValue({
+            then: (resolve: (r: typeof result) => void) => Promise.resolve().then(() => resolve(result)),
+          }),
         }),
       }),
     }),
@@ -159,7 +161,7 @@ describe('useQuestionBank', () => {
     const { unmount } = renderHook(() => useQuestionBank(), { wrapper: AllProviders });
     act(() => unmount());
 
-    // No assertion needed beyond "this doesn't throw" — the isMounted guard
+    // No assertion needed beyond "this doesn't throw" the isMounted guard
     // prevents a setState-after-unmount warning/crash.
     await waitFor(() => expect(true).toBe(true));
   });

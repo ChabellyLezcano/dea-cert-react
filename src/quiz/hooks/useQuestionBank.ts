@@ -45,25 +45,46 @@ export function useQuestionBank(certId?: string): UseQuestionBankResult {
   useEffect(() => {
     let isMounted = true;
 
-    let query = supabase.from('questions').select('*');
-    if (certId) {
-      query = query.eq('cert_id', certId);
-    }
+    async function fetchAll() {
+      // Supabase/PostgREST caps a single request at 1000 rows by default
+      // (db.max_rows), regardless of how many rows actually match. Once the
+      // bank passes that size, a plain `.select('*')` silently truncates.
+      // Page through with `.range()` until a page comes back short.
+      const PAGE_SIZE = 1000;
+      const allRows: RawRow[] = [];
+      let from = 0;
 
-    query
-      .range(0, 1200)
-      .order('exam', { ascending: true })
-      .order('n', { ascending: true })
-      .then(({ data, error: fetchError }) => {
-        if (!isMounted) return;
+      while (true) {
+        let query = supabase.from('questions').select('*');
+        if (certId) query = query.eq('cert_id', certId);
+
+        const { data, error: fetchError } = await query
+          .order('exam', { ascending: true })
+          .order('n', { ascending: true })
+          .range(from, from + PAGE_SIZE - 1);
+
         if (fetchError) {
-          setError(fetchError.message);
-          setIsLoading(false);
+          if (isMounted) {
+            setError(fetchError.message);
+            setIsLoading(false);
+          }
           return;
         }
-        setRows((data ?? []) as RawRow[]);
+
+        const page = (data ?? []) as RawRow[];
+        allRows.push(...page);
+
+        if (page.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
+      }
+
+      if (isMounted) {
+        setRows(allRows);
         setIsLoading(false);
-      });
+      }
+    }
+
+    fetchAll();
 
     return () => {
       isMounted = false;
