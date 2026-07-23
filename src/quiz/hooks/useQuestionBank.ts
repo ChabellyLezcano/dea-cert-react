@@ -45,10 +45,13 @@ export function useQuestionBank(certId?: string): UseQuestionBankResult {
   useEffect(() => {
     let isMounted = true;
 
-    let query = supabase.from('questions').select('*').range(0, 1199);
-    if (certId) query = query.eq('cert_id', certId);
+    let query = supabase.from('questions').select('*');
+    if (certId) {
+      query = query.eq('cert_id', certId);
+    }
 
     query
+      .range(0, 1200)
       .order('exam', { ascending: true })
       .order('n', { ascending: true })
       .then(({ data, error: fetchError }) => {
