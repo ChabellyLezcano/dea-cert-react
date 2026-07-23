@@ -16,8 +16,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-canvas">
       <header className="sticky top-0 z-10 border-b border-ink-100 bg-surface/90 backdrop-blur">
-        {/* Single line header container holding all elements with horizontal scrolling for mobile */}
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 overflow-x-auto scrollbar-thin [-webkit-overflow-scrolling:touch]">
+        {/* Main header row without full overflow, keeping sides pinned and safe */}
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           {/* Left: Back navigation and certification acronym */}
           <div className="flex shrink-0 items-center gap-3">
             <Link
@@ -36,9 +36,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Link>
           </div>
 
-          {/* Center/Inline: Tab navigation with primary highlights, icons, and hidden text on small screens */}
+          {/* Center: Tab navigation with horizontal scroll isolated strictly here for mobile */}
           <nav
-            className="flex shrink-0 items-center gap-2 rounded-xl bg-ink-50 p-1"
+            className="flex min-w-0 shrink items-center gap-1 overflow-x-auto rounded-xl bg-ink-50 p-1 scrollbar-thin [-webkit-overflow-scrolling:touch]"
             aria-label="Application sections"
           >
             <TabLink
@@ -63,7 +63,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             />
           </nav>
 
-          {/* Right: Hamburger menu for secondary actions */}
+          {/* Right: Hamburger menu always pinned and visible */}
           <div className="shrink-0">
             <HeaderMenu />
           </div>
@@ -90,7 +90,7 @@ function TabLink({ to, icon, label }: { to: string; icon: ReactNode; label: stri
       }
     >
       {icon}
-      {/* Hidden text on mobile screens (sm and down), visible from md screens upwards */}
+      {/* Hidden text on mobile screens, visible from md screens upwards */}
       <span className="hidden md:inline">{label}</span>
     </NavLink>
   );

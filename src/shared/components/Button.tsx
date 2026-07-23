@@ -10,10 +10,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const VARIANT_CLASSES: Record<Variant, string> = {
   primary:
     'bg-action text-white hover:bg-action-hover focus-visible:outline-brand-400 disabled:bg-ink-200 disabled:text-ink-400',
+  // Added high-contrast text and explicit focus-visible outline states for accessibility compliance
   ghost:
-    'bg-transparent text-ink-700 border border-ink-200 hover:border-brand-400 hover:text-brand-600 disabled:text-ink-300 disabled:border-ink-100',
+    'bg-transparent text-ink-900 border border-ink-300 hover:border-brand-500 hover:text-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500 disabled:text-ink-300 disabled:border-ink-100',
   danger:
-    'bg-transparent text-ko-600 border border-ko-100 hover:bg-ko-100 disabled:text-ink-300 disabled:border-ink-100',
+    'bg-transparent text-ko-600 border border-ko-100 hover:bg-ko-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ko-500 disabled:text-ink-300 disabled:border-ink-100',
 };
 
 export function Button({
