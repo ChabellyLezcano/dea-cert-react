@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useParams } from 'react-router-dom';
+import { BookOpen, FileText, Sparkles, Star, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/auth/useAuth';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
 import { LanguageSettings } from '@/shared/components/LanguageSettings';
@@ -15,8 +16,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-canvas">
       <header className="sticky top-0 z-10 border-b border-ink-100 bg-surface/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4">
-          <div className="flex min-w-0 items-center gap-3">
+        {/* Single line header container holding all elements with horizontal scrolling for mobile */}
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 overflow-x-auto scrollbar-thin [-webkit-overflow-scrolling:touch]">
+          {/* Left: Back navigation and certification acronym */}
+          <div className="flex shrink-0 items-center gap-3">
             <Link
               to="/certifications"
               className="flex items-center gap-1.5 text-sm font-semibold text-ink-500 transition hover:text-brand-600"
@@ -33,14 +36,37 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Link>
           </div>
 
-          <nav className="flex items-center gap-1 rounded-xl bg-ink-50 p-1" aria-label="Application sections">
-            <TabLink to={`${base}/quiz`}>{t('nav.practice')}</TabLink>
-            <TabLink to={`${base}/mock-exam`}>{t('nav.mockExam')}</TabLink>
-            <TabLink to={`${base}/ai-generate`}>{t('nav.aiGenerate')}</TabLink>
-            <TabLink to={`${base}/ai-favorites`}>{t('nav.aiFavorites')}</TabLink>
+          {/* Center/Inline: Tab navigation with primary highlights, icons, and hidden text on small screens */}
+          <nav
+            className="flex shrink-0 items-center gap-2 rounded-xl bg-ink-50 p-1"
+            aria-label="Application sections"
+          >
+            <TabLink
+              to={`${base}/quiz`}
+              icon={<BookOpen className="h-4 w-4 shrink-0" />}
+              label={t('nav.practice')}
+            />
+            <TabLink
+              to={`${base}/mock-exam`}
+              icon={<FileText className="h-4 w-4 shrink-0" />}
+              label={t('nav.mockExam')}
+            />
+            <TabLink
+              to={`${base}/ai-generate`}
+              icon={<Sparkles className="h-4 w-4 shrink-0" />}
+              label={t('nav.aiGenerate')}
+            />
+            <TabLink
+              to={`${base}/ai-favorites`}
+              icon={<Star className="h-4 w-4 shrink-0" />}
+              label={t('nav.aiFavorites')}
+            />
           </nav>
 
-          <HeaderMenu />
+          {/* Right: Hamburger menu for secondary actions */}
+          <div className="shrink-0">
+            <HeaderMenu />
+          </div>
         </div>
       </header>
 
@@ -49,18 +75,23 @@ export function AppLayout({ children }: { children: ReactNode }) {
   );
 }
 
-function TabLink({ to, children }: { to: string; children: ReactNode }) {
+function TabLink({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
   return (
     <NavLink
       to={to}
       end
+      title={label}
       className={({ isActive }) =>
-        `rounded-lg px-4 py-2 text-sm font-semibold transition ${
-          isActive ? 'bg-surface text-brand-700 shadow-sm' : 'text-ink-500 hover:text-ink-700'
+        `flex items-center gap-2 shrink-0 rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+          isActive
+            ? 'bg-brand-500 text-white shadow-sm'
+            : 'text-ink-600 hover:bg-ink-100/60 hover:text-ink-900'
         }`
       }
     >
-      {children}
+      {icon}
+      {/* Hidden text on mobile screens (sm and down), visible from md screens upwards */}
+      <span className="hidden md:inline">{label}</span>
     </NavLink>
   );
 }
@@ -130,9 +161,10 @@ function HeaderMenu() {
           <button
             type="button"
             onClick={() => signOut()}
-            className="w-full rounded-lg border-t border-ink-100 px-3 py-2.5 text-left text-sm font-semibold text-ko-600 transition hover:bg-ko-100"
+            className="w-full rounded-lg border-t border-ink-100 px-3 py-2.5 text-left text-sm font-semibold text-ko-600 transition hover:bg-ko-100 flex items-center gap-2"
           >
-            {t('header.signOut')}
+            <RotateCcw className="h-4 w-4" />
+            <span>{t('header.signOut')}</span>
           </button>
         </div>
       )}
