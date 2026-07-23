@@ -1,5 +1,5 @@
 // src/app/App.tsx
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '@/auth/AuthContext';
 import { AuthGuard } from '@/auth/AuthGuard';
@@ -10,17 +10,27 @@ import { InlineSpinner } from '@/shared/components/InlineSpinner';
 import { ThemeProvider } from '@/shared/theme/ThemeProvider';
 import { LocaleProvider } from '@/shared/i18n/LocaleContext';
 import { useLocale } from '@/shared/i18n/useLocale';
+import { lazyWithReload } from '@/shared/utils/lazyWithReload';
 
-const QuizPage = lazy(() => import('@/quiz/QuizPage').then((m) => ({ default: m.QuizPage })));
-const MockExamPage = lazy(() => import('@/quiz/MockExamPage').then((m) => ({ default: m.MockExamPage })));
-const AiGeneratePage = lazy(() =>
-  import('@/quiz/ai/AiGeneratePage').then((m) => ({ default: m.AiGeneratePage })),
+const QuizPage = lazyWithReload(
+  () => import('@/quiz/QuizPage').then((m) => ({ default: m.QuizPage })),
+  'quiz-page',
 );
-const AiFavoritesPage = lazy(() =>
-  import('@/quiz/ai/AiFavoritesPage').then((m) => ({ default: m.AiFavoritesPage })),
+const MockExamPage = lazyWithReload(
+  () => import('@/quiz/MockExamPage').then((m) => ({ default: m.MockExamPage })),
+  'mock-exam-page',
 );
-const CertificationsPage = lazy(() =>
-  import('@/certifications/CertificationsPage').then((m) => ({ default: m.CertificationsPage })),
+const AiGeneratePage = lazyWithReload(
+  () => import('@/quiz/ai/AiGeneratePage').then((m) => ({ default: m.AiGeneratePage })),
+  'ai-generate-page',
+);
+const AiFavoritesPage = lazyWithReload(
+  () => import('@/quiz/ai/AiFavoritesPage').then((m) => ({ default: m.AiFavoritesPage })),
+  'ai-favorites-page',
+);
+const CertificationsPage = lazyWithReload(
+  () => import('@/certifications/CertificationsPage').then((m) => ({ default: m.CertificationsPage })),
+  'certifications-page',
 );
 
 export default function App() {
