@@ -1,12 +1,17 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { MockExamPanel, type MockExamSessionStats } from '@/quiz/components/MockExamPanel';
+import { MockExamPanel, MockExamFinishBar, type MockExamSessionStats } from '@/quiz/components/MockExamPanel';
 import { QuestionList } from '@/quiz/components/QuestionList';
 import { Pagination } from '@/quiz/components/Pagination';
 import { useProgress, buildGradedEntry, buildRevealedEntry } from '@/quiz/hooks/useProgress';
 import { useQuestionBank } from '@/quiz/hooks/useQuestionBank';
 import { PAGE_SIZE } from '@/quiz/hooks/useQuestionFilter';
-import { generateMockExam, type MockExamOptions, type MockExamResult } from '@/quiz/utils/mockExam';
+import {
+  computeMockExamDomainResults,
+  generateMockExam,
+  type MockExamOptions,
+  type MockExamResult,
+} from '@/quiz/utils/mockExam';
 import { useAuth } from '@/auth/useAuth';
 import { InlineSpinner } from '@/shared/components/InlineSpinner';
 import { useLocale } from '@/shared/i18n/useLocale';
@@ -117,6 +122,14 @@ export function MockExamPage() {
     return { answered, correct, total: mockExam.questions.length };
   }, [mockExam, mockExamFinished, mockFinalStats, mockDraftAnswers]);
 
+  // Only meaningful once finished: reads from `progress` (the real,
+  // already-committed answers), not the draft, since the draft is cleared
+  // by handleFinishMockExam right after committing.
+  const mockDomainResults = useMemo(() => {
+    if (!mockExam || !mockExamFinished) return null;
+    return computeMockExamDomainResults(mockExam.questions, progress);
+  }, [mockExam, mockExamFinished, progress]);
+
   const mockExamTotalPages = mockExam ? Math.max(1, Math.ceil(mockExam.questions.length / PAGE_SIZE)) : 1;
   const mockExamPageItems = useMemo(
     () =>
@@ -161,9 +174,9 @@ export function MockExamPage() {
       )}
 
       <MockExamPanel
-        certId={certId}
         active={mockExam}
         sessionStats={mockSessionStats}
+        domainResults={mockDomainResults}
         finished={mockExamFinished}
         maxAvailable={bank.length}
         onGenerate={handleGenerateMockExam}
@@ -182,6 +195,10 @@ export function MockExamPage() {
             onRetry={handleRetry}
           />
           <Pagination page={mockExamPage} totalPages={mockExamTotalPages} onPageChange={setMockExamPage} />
+
+          {!mockExamFinished && (
+            <MockExamFinishBar onFinish={handleFinishMockExam} onExit={handleExitMockExam} />
+          )}
         </>
       )}
     </div>

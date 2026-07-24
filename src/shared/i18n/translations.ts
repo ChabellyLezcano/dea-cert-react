@@ -113,6 +113,8 @@ export const en = {
   'mockExam.ofAvailable': 'of {max} available',
   'mockExam.sourceLabel': 'Questions to include',
   'mockExam.generateButton': 'Generate exam',
+  'mockExam.domainBreakdownTitle': 'Result by domain',
+  'mockExam.domainResultLine': '{correct}/{total} · {percentage}%',
 
   // AI generation
   'ai.generate.intro':
@@ -285,6 +287,8 @@ export const es: Record<TranslationKey, string> = {
   'mockExam.ofAvailable': 'de {max} disponibles',
   'mockExam.sourceLabel': 'Preguntas a incluir',
   'mockExam.generateButton': 'Generar examen',
+  'mockExam.domainBreakdownTitle': 'Resultado por dominio',
+  'mockExam.domainResultLine': '{correct}/{total} · {percentage}%',
 
   // AI generation
   'ai.generate.intro':

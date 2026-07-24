@@ -1,10 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { CheckCircle2, Flag, Target, XCircle } from 'lucide-react';
-import { DOMAINS, DOMAIN_MAP } from '../data/domains';
+import { DOMAIN_MAP } from '../data/domains';
 import { Button } from '../../shared/components/Button';
 import { CircularProgress } from '../../shared/components/CircularProgress';
 import { useLocale } from '../../shared/i18n/useLocale';
-import type { MockExamOptions, MockExamResult, MockExamSource } from '../utils/mockExam';
+import type {
+  MockExamDomainResult,
+  MockExamOptions,
+  MockExamResult,
+  MockExamSource,
+} from '../utils/mockExam';
 
 export interface MockExamSessionStats {
   answered: number;
@@ -13,8 +18,6 @@ export interface MockExamSessionStats {
 }
 
 interface MockExamPanelProps {
-  /** Which certification's domains to filter against */
-  certId?: string;
   /** null when no mock exam is currently active. */
   active: MockExamResult | null;
   /** Live tally of answered/correct questions: this session's draft-only
@@ -22,6 +25,9 @@ interface MockExamPanelProps {
    * once "Finish exam" has been pressed. Only meaningful while
    * `active` is set. */
   sessionStats: MockExamSessionStats | null;
+  /** Per-domain correct/total breakdown for the finished attempt. Only
+   * meaningful once `finished` is true -- null otherwise. */
+  domainResults: MockExamDomainResult[] | null;
   /** True once "Finish exam" has been pressed and the draft answers
    * for this attempt have been committed to your real progress. */
   finished: boolean;
@@ -34,9 +40,9 @@ interface MockExamPanelProps {
 const QUESTION_COUNT_PRESETS = [15, 25, 45, 60, 90];
 
 export function MockExamPanel({
-  certId,
   active,
   sessionStats,
+  domainResults,
   finished,
   maxAvailable,
   onGenerate,
@@ -46,9 +52,6 @@ export function MockExamPanel({
   const [totalQuestions, setTotalQuestions] = useState(45);
   const [source, setSource] = useState<MockExamSource>('both');
   const { t } = useLocale();
-
-  // Filtramos los dominios asegurando que pertenecen únicamente al certId actual
-  const certDomains = useMemo(() => DOMAINS.filter((d) => d.certId === certId), [certId]);
 
   const sourceOptions: { value: MockExamSource; label: string }[] = [
     { value: 'unanswered', label: t('mockExam.source.unanswered') },
@@ -93,6 +96,19 @@ export function MockExamPanel({
             {t('mockExam.exitFinished')}
           </Button>
         </div>
+
+        {domainResults && domainResults.length > 0 && (
+          <div className="mt-4 border-t border-ink-100 pt-4">
+            <h3 className="mb-2.5 text-xs font-bold uppercase tracking-wide text-ink-400">
+              {t('mockExam.domainBreakdownTitle')}
+            </h3>
+            <div className="flex flex-col gap-2">
+              {domainResults.map((result) => (
+                <DomainResultBar key={result.domain} result={result} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -119,23 +135,18 @@ export function MockExamPanel({
           </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {active.breakdown
-            .filter((entry) => certDomains.some((d) => d.id === entry.domain)) // <--- Filtramos aquí
-            .map((entry) => {
-              const domainInfo = DOMAIN_MAP[entry.domain];
-              return (
-                <span
-                  key={entry.domain}
-                  className="rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-ink-600"
-                  title={domainInfo?.name ?? entry.domain}
-                >
-                  {entry.domain}: {entry.picked}
-                  {entry.picked !== entry.target && (
-                    <span className="text-ink-400"> {t('mockExam.targetSuffix', { n: entry.target })}</span>
-                  )}
-                </span>
-              );
-            })}
+          {active.breakdown.map((entry) => (
+            <span
+              key={entry.domain}
+              className="rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-ink-600"
+              title={DOMAIN_MAP[entry.domain].name}
+            >
+              {entry.domain}: {entry.picked}
+              {entry.picked !== entry.target && (
+                <span className="text-ink-400"> {t('mockExam.targetSuffix', { n: entry.target })}</span>
+              )}
+            </span>
+          ))}
         </div>
       </div>
     );
@@ -211,6 +222,41 @@ export function MockExamPanel({
         disabled={maxAvailable === 0}
       >
         {t('mockExam.generateButton')}
+      </Button>
+    </div>
+  );
+}
+
+function DomainResultBar({ result }: { result: MockExamDomainResult }) {
+  const { t } = useLocale();
+  const percentage = result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0;
+  const domain = DOMAIN_MAP[result.domain];
+  const percentageColorClassName =
+    percentage >= 80 ? 'text-ok-600' : percentage >= 70 ? 'text-accent-600' : 'text-ko-600';
+
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="truncate text-xs font-semibold text-ink-600" title={domain?.name}>
+        {domain?.name ?? result.domain}
+      </span>
+      <span className={`shrink-0 text-xs font-bold ${percentageColorClassName}`}>
+        {t('mockExam.domainResultLine', { correct: result.correct, total: result.total, percentage })}
+      </span>
+    </div>
+  );
+}
+
+/** Same "Finish exam" / "Exit without saving" actions as the top panel,
+ * meant to sit below the question list so you don't have to scroll back up
+ * once you've gone through every question in the attempt. */
+export function MockExamFinishBar({ onFinish, onExit }: { onFinish: () => void; onExit: () => void }) {
+  const { t } = useLocale();
+
+  return (
+    <div className="mt-4 flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-ink-100 bg-surface p-4 shadow-sm">
+      <Button onClick={onFinish}>{t('mockExam.finish')}</Button>
+      <Button variant="ghost" onClick={onExit}>
+        {t('mockExam.exitWithoutSaving')}
       </Button>
     </div>
   );

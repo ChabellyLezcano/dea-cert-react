@@ -28,6 +28,50 @@ export interface MockExamResult {
   isShortOfTarget: boolean;
 }
 
+export interface MockExamDomainResult {
+  domain: DomainId;
+  correct: number;
+  total: number;
+}
+
+/** Per-domain correctness breakdown for a finished mock exam attempt, e.g.
+ * for a results panel showing "% correct" per domain. Only domains that
+ * actually got at least one question in this exam are included -- a
+ * domain with `total: 0` would just be a 0/0 row with nothing meaningful
+ * to show. `progress` should be the *real*, already-committed progress
+ * (post "Finish exam"), not an in-progress draft. */
+export function computeMockExamDomainResults(
+  questions: Question[],
+  progress: ProgressMap,
+): MockExamDomainResult[] {
+  const byDomain = new Map<DomainId, { correct: number; total: number }>();
+
+  for (const question of questions) {
+    const stats = byDomain.get(question.d) ?? { correct: 0, total: 0 };
+    stats.total += 1;
+    if (progress[question.id]?.ok) stats.correct += 1;
+    byDomain.set(question.d, stats);
+  }
+
+  // Ordered by each domain's official position. DOMAINS aggregates every
+  // loaded certification (each domain stamped with its own certId), but a
+  // domain only ends up in `byDomain` if one of its questions was actually
+  // in this exam -- which, since the exam is generated from a single
+  // cert's bank, means cross-cert entries are naturally excluded without
+  // needing a certId here. The `seen` guard is just a defensive backstop
+  // against the documented (if currently untrue) risk of two certs
+  // reusing the same domain code -- see the note on DOMAIN_MAP.
+  const seen = new Set<DomainId>();
+  const results: MockExamDomainResult[] = [];
+  for (const domain of DOMAINS) {
+    const stats = byDomain.get(domain.id);
+    if (!stats || seen.has(domain.id)) continue;
+    seen.add(domain.id);
+    results.push({ domain: domain.id, ...stats });
+  }
+  return results;
+}
+
 /** Splits `total` into one integer count per domain, proportional to each
  * domain's official exam weight, using the largest-remainder method so the
  * counts always add up to exactly `total` (plain rounding can over/undershoot). */

@@ -13,12 +13,21 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
 
   const pageNumbers = buildPageWindow(page, totalPages);
 
+  // Pagination controls sit at the bottom of a long question list, so
+  // without this the next page renders while you're still scrolled down
+  // near the bottom you'd land on question 46 having to scroll back up
+  // to see question 1 of the new page instead of starting from the top.
+  function goToPage(next: number) {
+    onPageChange(next);
+    window.scrollTo({ top: 0 });
+  }
+
   return (
     <nav
       className="flex flex-wrap items-center justify-center gap-2 py-2"
       aria-label={t('pagination.ariaLabel')}
     >
-      <Button variant="ghost" onClick={() => onPageChange(page - 1)} disabled={page === 1}>
+      <Button variant="ghost" onClick={() => goToPage(page - 1)} disabled={page === 1}>
         ‹ {t('pagination.prev')}
       </Button>
 
@@ -32,7 +41,7 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
             key={entry}
             type="button"
             aria-current={entry === page ? 'page' : undefined}
-            onClick={() => onPageChange(entry)}
+            onClick={() => goToPage(entry)}
             className={`h-9 w-9 rounded-lg text-sm font-semibold transition ${
               entry === page ? 'bg-action text-white' : 'text-ink-600 hover:bg-ink-100'
             }`}
@@ -42,7 +51,7 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
         ),
       )}
 
-      <Button variant="ghost" onClick={() => onPageChange(page + 1)} disabled={page === totalPages}>
+      <Button variant="ghost" onClick={() => goToPage(page + 1)} disabled={page === totalPages}>
         {t('pagination.next')} ›
       </Button>
     </nav>
